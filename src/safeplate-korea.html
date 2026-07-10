@@ -218,11 +218,25 @@ main{flex:1;overflow-y:auto;padding-bottom:86px}
 .nation-btn.on .n{color:#fff;font-weight:700}
 .w-greet{margin-top:16px;font-size:13.5px;line-height:1.7;color:var(--brand-dark);background:var(--brand-tint);border-radius:12px;padding:12px 14px;display:none;word-break:keep-all}
 .w-greet.show{display:block;animation:fade .3s ease}
-/* onboarding (step 2) */
+/* onboarding (step 2) wizard */
 .ob-head{padding:46px 26px 6px}
+.ob-progress{display:flex;align-items:center;gap:5px;margin-bottom:18px}
+.ob-progress .seg{flex:1;height:4px;border-radius:99px;background:var(--line);transition:background .2s}
+.ob-progress .seg.on{background:var(--brand)}
+.ob-progress .cnt{font-size:11px;font-weight:700;color:var(--ink-soft);margin-inline-start:6px;flex:0 0 auto}
 .ob-title{font-family:var(--font-display);font-size:24px;font-weight:700;line-height:1.4;word-break:keep-all}
 .ob-sub{font-size:13px;color:var(--ink-soft);margin-top:8px;line-height:1.6}
-.ob-body{padding:4px 26px 34px;flex:1}
+.ob-body{padding:16px 26px 34px;flex:1;display:flex;flex-direction:column}
+.ob-panel{display:none;animation:fade .25s ease}
+.ob-nav{display:flex;gap:10px;margin-top:auto;padding-top:26px}
+.ob-nav .cta{margin-top:0}
+.cta.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);flex:0 0 34%}
+.etc-input{
+  width:100%;border:1px solid var(--line);border-radius:14px;background:var(--card);
+  padding:13px 14px;font-family:var(--font-ui);font-size:13.5px;line-height:1.6;color:var(--ink);
+  resize:vertical;min-height:120px;
+}
+.etc-input:focus{outline:2px solid var(--brand);outline-offset:1px;border-color:var(--brand)}
 
 /* bottom nav */
 nav{position:absolute;bottom:0;left:0;right:0;z-index:30;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);display:flex;padding:8px 10px calc(10px + env(safe-area-inset-bottom))}
@@ -256,24 +270,24 @@ nav button.on{color:var(--brand-dark);font-weight:700}
 
     <div class="cover-step" id="step-profile">
       <div class="ob-head">
+        <div class="ob-progress" id="ob-progress"></div>
         <div class="ob-title" id="ob-title"></div>
         <div class="ob-sub" id="ob-sub"></div>
       </div>
       <div class="ob-body">
-        <div class="prof-group">
-          <h3 id="ob-cond-t"></h3><p id="ob-cond-d"></p>
-          <div class="chips" id="ob-cond"></div>
-        </div>
-        <div class="prof-group">
-          <h3 id="ob-alg-t"></h3><p id="ob-alg-d"></p>
-          <div class="chips" id="ob-alg"></div>
-        </div>
-        <div class="prof-group">
-          <h3 id="ob-rel-t"></h3><p id="ob-rel-d"></p>
+        <div class="ob-panel" id="panel-cond"><div class="chips" id="ob-cond"></div></div>
+        <div class="ob-panel" id="panel-alg"><div class="chips" id="ob-alg"></div></div>
+        <div class="ob-panel" id="panel-rel">
           <div class="chips" id="ob-rel"></div>
           <div class="nat-hint" id="ob-nat-hint"></div>
         </div>
-        <button class="cta" id="ob-start" onclick="finishOnboarding()"></button>
+        <div class="ob-panel" id="panel-etc">
+          <textarea id="ob-etc" class="etc-input" rows="5"></textarea>
+        </div>
+        <div class="ob-nav">
+          <button class="cta ghost" id="ob-back" onclick="obPrev()"></button>
+          <button class="cta" id="ob-next" onclick="obNext()"></button>
+        </div>
       </div>
     </div>
   </div>
@@ -291,7 +305,7 @@ nav button.on{color:var(--brand-dark);font-weight:700}
   </header>
 
   <main>
-    <section class="screen active" id="scr-explore">
+    <section class="screen" id="scr-explore">
       <div id="reco-section"></div>
       <div class="legend" id="legend"></div>
       <div class="section-label" id="rest-count-label"></div>
@@ -301,7 +315,7 @@ nav button.on{color:var(--brand-dark);font-weight:700}
 
     <section class="screen" id="scr-detail"></section>
 
-    <section class="screen" id="scr-card"><div class="card-wrap" id="card-body"></div></section>
+    <section class="screen active" id="scr-card"><div class="card-wrap" id="card-body"></div></section>
 
     <section class="screen" id="scr-profile">
       <div class="prof-wrap">
@@ -325,16 +339,20 @@ nav button.on{color:var(--brand-dark);font-weight:700}
           <h3 id="pf-rel-t"></h3><p id="pf-rel-d"></p>
           <div class="chips" id="pf-rel"></div>
         </div>
+        <div class="prof-group">
+          <h3 id="pf-etc-t"></h3><p id="pf-etc-d"></p>
+          <textarea id="pf-etc" class="etc-input" rows="4" oninput="profile.etc=this.value; renderProfileCard(); renderProfileStrip();"></textarea>
+        </div>
       </div>
     </section>
   </main>
 
   <nav>
-    <button id="nav-explore" class="on" onclick="go('explore')">
+    <button id="nav-explore" onclick="go('explore')">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <span id="nav-explore-l"></span>
     </button>
-    <button id="nav-card" onclick="go('card')">
+    <button id="nav-card" class="on" onclick="go('card')">
       <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 10h7M7 14h4"/></svg>
       <span id="nav-card-l"></span>
     </button>
@@ -356,7 +374,8 @@ ko:{
   algT:'알레르기', algD:'표시대상 알레르겐 중 해당 항목을 선택하세요.',
   relT:'종교·신념 식단', relD:'지켜야 하는 식단 원칙이 있다면 선택하세요.',
   natT:'국적', natD:'인기 한식 추천과 안심카드 언어에만 사용돼요.',
-  optional:'(선택)', start:'프로필 저장하고 시작하기',
+  optional:'(선택)', start:'프로필 저장하고 시작하기', nextBtn:'다음', backBtn:'이전',
+  etcT:'기타 사항', etcD:'추가로 알려주고 싶은 제약이나 요청이 있다면 자유롭게 적어주세요. 안심카드에도 표시돼요.', etcPh:'예: 오이를 못 먹어요 / 국물은 적게 부탁드려요 / 고수는 빼주세요',
   legend:['안심 메뉴 있음','골라 먹어야 함','안심 메뉴 없음'],
   restCount:(a,n)=>`${a} 주변 식당 ${n}곳`,
   srcTour:'출처: 한국관광공사 TourAPI',
@@ -420,7 +439,8 @@ en:{
   algT:'Allergies', algD:'Select from Korea\u2019s labeled allergens.',
   relT:'Religious / lifestyle diet', relD:'Select any dietary rule you follow.',
   natT:'Country', natD:'Used only for dish picks and card language.',
-  optional:'(optional)', start:'Save my profile & start',
+  optional:'(optional)', start:'Save my profile & start', nextBtn:'Next', backBtn:'Back',
+  etcT:'Anything else?', etcD:'Feel free to add any other restriction or request. It will also appear on your Care Card.', etcPh:'e.g. I can\u2019t eat cucumber / Less broth please / No cilantro',
   legend:['Has safe menus','Choose carefully','No safe menu'],
   restCount:(a,n)=>`${n} restaurants near ${a}`,
   srcTour:'Source: Korea Tourism Org. TourAPI',
@@ -484,7 +504,8 @@ ja:{
   algT:'アレルギー', algD:'該当するアレルゲンを選択してください。',
   relT:'宗教・信条の食事', relD:'守るべき食のルールがあれば選択してください。',
   natT:'国籍', natD:'おすすめ料理とカード言語のみに使用します。',
-  optional:'（任意）', start:'プロフィールを保存して始める',
+  optional:'（任意）', start:'プロフィールを保存して始める', nextBtn:'次へ', backBtn:'戻る',
+  etcT:'その他', etcD:'他に伝えたい制限や要望があれば自由にご記入ください。安心カードにも表示されます。', etcPh:'例：きゅうりが食べられません / スープ少なめで / パクチー抜きで',
   legend:['安心メニューあり','選んで注文','安心メニューなし'],
   restCount:(a,n)=>`${a}周辺の飲食店 ${n}軒`,
   srcTour:'出典: 韓国観光公社 TourAPI',
@@ -548,7 +569,8 @@ zh:{
   algT:'过敏原', algD:'请选择您的过敏原。',
   relT:'宗教/理念饮食', relD:'如有需要遵守的饮食原则，请选择。',
   natT:'国籍', natD:'仅用于推荐菜品和卡片语言。',
-  optional:'（可选）', start:'保存资料并开始',
+  optional:'（可选）', start:'保存资料并开始', nextBtn:'下一步', backBtn:'上一步',
+  etcT:'其他事项', etcD:'如有其他限制或要求，请随意填写。也会显示在安心卡上。', etcPh:'例如：不吃黄瓜 / 汤请少放 / 不要香菜',
   legend:['有安心菜品','需挑选','无安心菜品'],
   restCount:(a,n)=>`${a}附近餐厅 ${n}家`,
   srcTour:'来源: 韩国观光公社 TourAPI',
@@ -612,7 +634,8 @@ ar:{
   algT:'الحساسية', algD:'اختر مسببات الحساسية التي تنطبق عليك.',
   relT:'نظام غذائي ديني', relD:'اختر أي قاعدة غذائية تلتزم بها.',
   natT:'الدولة', natD:'تُستخدم فقط لاقتراح الأطباق ولغة البطاقة.',
-  optional:'(اختياري)', start:'احفظ ملفي وابدأ',
+  optional:'(اختياري)', start:'احفظ ملفي وابدأ', nextBtn:'التالي', backBtn:'رجوع',
+  etcT:'أي شيء آخر؟', etcD:'أضف أي قيد أو طلب آخر بحرية. سيظهر أيضاً على بطاقة الاطمئنان.', etcPh:'مثال: لا آكل الخيار / مرق أقل من فضلك / بدون كزبرة',
   legend:['يوجد أطباق آمنة','اختر بعناية','لا أطباق آمنة'],
   restCount:(a,n)=>`${n} مطاعم قرب ${a}`,
   srcTour:'المصدر: هيئة السياحة الكورية TourAPI',
@@ -850,7 +873,7 @@ const AREAS = {
 const loc = obj => obj[uiLang] || obj.en || obj.ko;
 
 /* ================= state ================= */
-let profile = {cond:[], alg:[], rel:[], nation:null};
+let profile = {cond:[], alg:[], rel:[], nation:null, etc:''};
 let uiLang = 'en';
 let areaKey = 'myeongdong';
 let currentLang = 'en';
@@ -972,12 +995,40 @@ function goStep2(){
   profile.nation = pendingNation;
   document.getElementById('step-welcome').classList.remove('active');
   document.getElementById('step-profile').classList.add('active');
-  renderStatic(); refresh();
+  obStep = 0;
+  renderStatic(); refresh(); renderWizard();
   document.getElementById('cover').scrollTop = 0;
 }
+/* --- profile wizard --- */
+let obStep = 0;
+const OB_STEPS = ['cond','alg','rel','etc'];
+function renderWizard(){
+  const s = t();
+  const defs = {cond:[s.condT,s.condD], alg:[s.algT,s.algD], rel:[s.relT,s.relD], etc:[s.etcT,s.etcD]};
+  const key = OB_STEPS[obStep];
+  document.getElementById('ob-title').textContent = defs[key][0];
+  document.getElementById('ob-sub').textContent = defs[key][1];
+  OB_STEPS.forEach((k,i)=>{ document.getElementById('panel-'+k).style.display = (i===obStep?'block':'none'); });
+  document.getElementById('ob-progress').innerHTML =
+    OB_STEPS.map((k,i)=>`<span class="seg ${i<=obStep?'on':''}"></span>`).join('') +
+    `<span class="cnt">${obStep+1} / ${OB_STEPS.length}</span>`;
+  const back = document.getElementById('ob-back');
+  back.style.visibility = obStep===0 ? 'hidden' : 'visible';
+  back.textContent = s.backBtn;
+  document.getElementById('ob-next').textContent = (obStep===OB_STEPS.length-1) ? s.start : s.nextBtn;
+  const ta = document.getElementById('ob-etc');
+  ta.placeholder = s.etcPh; ta.value = profile.etc || '';
+}
+function obNext(){
+  if(OB_STEPS[obStep]==='etc') profile.etc = document.getElementById('ob-etc').value.trim();
+  if(obStep < OB_STEPS.length-1){ obStep++; renderWizard(); document.getElementById('cover').scrollTop = 0; }
+  else finishOnboarding();
+}
+function obPrev(){ if(obStep>0){ obStep--; renderWizard(); } }
 function finishOnboarding(){
   document.getElementById('cover').style.display='none';
   renderStatic(); refresh();
+  go('card');
 }
 function applyDir(){
   document.getElementById('phone').dir = (uiLang==='ar') ? 'rtl' : 'ltr';
@@ -986,15 +1037,11 @@ function applyDir(){
 /* ================= static UI text ================= */
 function renderStatic(){
   const s = t();
-  document.getElementById('ob-title').textContent = s.obTitle;
-  document.getElementById('ob-sub').textContent = s.obSub;
-  document.getElementById('ob-cond-t').textContent = s.condT;
-  document.getElementById('ob-cond-d').textContent = s.condD;
-  document.getElementById('ob-alg-t').textContent = s.algT;
-  document.getElementById('ob-alg-d').textContent = s.algD;
-  document.getElementById('ob-rel-t').textContent = s.relT;
-  document.getElementById('ob-rel-d').textContent = s.relD;
-  document.getElementById('ob-start').textContent = s.start;
+  document.getElementById('pf-etc-t').textContent = s.etcT;
+  document.getElementById('pf-etc-d').textContent = s.etcD;
+  const pfe = document.getElementById('pf-etc');
+  pfe.placeholder = s.etcPh;
+  if(document.activeElement !== pfe) pfe.value = profile.etc || '';
   document.getElementById('legend').innerHTML =
     `<div><span class="dot g"></span>${s.legend[0]}</div><div><span class="dot y"></span>${s.legend[1]}</div><div><span class="dot r"></span>${s.legend[2]}</div>`;
   document.getElementById('explore-note').innerHTML = s.exploreNote;
@@ -1014,7 +1061,8 @@ function renderStatic(){
 }
 
 /* ================= render ================= */
-function hasProfile(){ return profile.cond.length+profile.alg.length+profile.rel.length>0; }
+function hasProfile(){ return profile.cond.length+profile.alg.length+profile.rel.length>0 || (profile.etc && profile.etc.trim().length>0); }
+function esc(x){ return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 const PLATE_ICON = {g:'✓', y:'!', r:'✕'};
 
 function renderProfileStrip(){
@@ -1185,6 +1233,10 @@ function idCardHTML(){
         </div>`:''}
       </div>
     </div>
+    ${profile.etc && profile.etc.trim() ? `<div class="id-field" style="margin-top:11px;position:relative">
+      <label>기타 요청 / OTHER NOTES</label>
+      <div class="val" style="font-weight:500;font-size:12px;line-height:1.5">${esc(profile.etc.trim())}</div>
+    </div>` : ''}
     <div class="id-msg">사장님, 위 재료가 들어가는지 확인 부탁드립니다. 감사합니다 🙏</div>
     <div class="id-foot">
       <div class="meta">NO. ${cardNo()}<br>ISSUED ${issued} · VALID WITH TRAVELER</div>
