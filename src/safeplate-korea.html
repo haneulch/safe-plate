@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SafePlate Korea</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#2F7A68; --brand-dark:#1E5347; --brand-tint:#E7F1EE;
+  --ink:#17241F; --ink-soft:#5B6B64;
+  --bg:#F4F7F5; --card:#FFFFFF; --line:#E1E8E4;
+  --safe:#1E8A5B; --safe-bg:#E4F4EC;
+  --caution:#B47B00; --caution-bg:#FBF1DA;
+  --avoid:#C6423A; --avoid-bg:#FBE7E5;
+  --radius:16px;
+  --font-ui:'IBM Plex Sans KR',-apple-system,sans-serif;
+  --font-display:'Gowun Batang',serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font-ui);background:#DDE5E1;color:var(--ink);display:flex;justify-content:center;min-height:100vh}
+#phone{width:100%;max-width:420px;background:var(--bg);min-height:100vh;position:relative;display:flex;flex-direction:column;box-shadow:0 0 40px rgba(23,36,31,.12)}
+
+/* header */
+header{position:sticky;top:0;z-index:20;background:rgba(244,247,245,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 18px 10px}
+.brand-row{display:flex;align-items:center;justify-content:space-between}
+.brand{font-family:var(--font-display);font-weight:700;font-size:19px;color:var(--brand-dark)}
+.brand small{font-family:var(--font-ui);font-weight:500;font-size:11px;color:var(--ink-soft);margin-inline-start:6px}
+.loc-chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--font-ui)}
+.loc-chip svg{width:12px;height:12px;fill:var(--brand)}
+.profile-strip{margin-top:10px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.profile-strip::-webkit-scrollbar{display:none}
+.ptag{flex:0 0 auto;font-size:11.5px;font-weight:500;background:var(--brand-tint);color:var(--brand-dark);border-radius:999px;padding:4px 10px}
+.ptag.empty{background:transparent;border:1px dashed var(--line);color:var(--ink-soft)}
+
+/* screens */
+main{flex:1;overflow-y:auto;padding-bottom:86px}
+.screen{display:none;animation:fade .25s ease}
+.screen.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.screen,.w-line{animation:none!important}}
+
+/* explore */
+.section-label{padding:16px 18px 8px;font-size:12px;font-weight:700;letter-spacing:.8px;color:var(--ink-soft);text-transform:uppercase}
+.legend{margin:10px 18px 0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;display:flex;justify-content:space-between;gap:6px}
+.legend div{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-soft)}
+.dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+.dot.g{background:var(--safe)}.dot.y{background:var(--caution)}.dot.r{background:var(--avoid)}
+.rest-list{padding:6px 18px 20px;display:flex;flex-direction:column;gap:10px}
+.rest-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:border-color .15s}
+.rest-card:active{border-color:var(--brand)}
+.plate{flex:0 0 46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;position:relative}
+.plate::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid currentColor;opacity:.28}
+.plate.g{background:var(--safe-bg);color:var(--safe)}
+.plate.y{background:var(--caution-bg);color:var(--caution)}
+.plate.r{background:var(--avoid-bg);color:var(--avoid)}
+.rest-info{flex:1;min-width:0}
+.rest-name{font-weight:700;font-size:15px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.halal-badge{font-size:10px;background:var(--brand-tint);color:var(--brand-dark);border-radius:6px;padding:2px 6px;font-weight:700}
+.rest-cat{font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+.rest-verdict{font-size:12px;margin-top:7px;font-weight:500}
+.rest-verdict.g{color:var(--safe)}.rest-verdict.y{color:var(--caution)}.rest-verdict.r{color:var(--avoid)}
+.rest-meta{font-size:11px;color:var(--ink-soft);margin-top:3px}
+
+/* detail */
+.detail-hero{padding:20px 18px 14px;border-bottom:1px solid var(--line);background:var(--card)}
+.back-btn{background:none;border:none;font-family:var(--font-ui);font-size:13px;font-weight:500;color:var(--brand-dark);cursor:pointer;padding:0 0 12px;display:flex;align-items:center;gap:4px}
+.detail-name{font-family:var(--font-display);font-size:22px;font-weight:700}
+.detail-sub{font-size:12.5px;color:var(--ink-soft);margin-top:5px;line-height:1.5}
+.detail-badge{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font-size:12.5px;font-weight:700;border-radius:999px;padding:6px 13px}
+.detail-badge.g{background:var(--safe-bg);color:var(--safe)}
+.detail-badge.y{background:var(--caution-bg);color:var(--caution)}
+.detail-badge.r{background:var(--avoid-bg);color:var(--avoid)}
+.menu-list{padding:4px 18px 20px}
+.menu-item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:13px 14px;margin-top:10px}
+.menu-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.menu-name{font-weight:700;font-size:14.5px}
+.menu-name small{font-weight:500;color:var(--ink-soft);font-size:11.5px;display:block;margin-top:1px}
+.menu-price{font-size:12px;color:var(--ink-soft);margin-top:3px}
+.mbadge{flex:0 0 auto;font-size:11px;font-weight:700;border-radius:8px;padding:4px 9px}
+.mbadge.g{background:var(--safe-bg);color:var(--safe)}
+.mbadge.y{background:var(--caution-bg);color:var(--caution)}
+.mbadge.r{background:var(--avoid-bg);color:var(--avoid)}
+.menu-reasons{margin-top:9px;display:flex;flex-direction:column;gap:5px}
+.reason{font-size:12px;line-height:1.5;color:var(--ink-soft);display:flex;gap:6px}
+.reason b{font-weight:700}
+.reason.g b{color:var(--safe)}.reason.y b{color:var(--caution)}.reason.r b{color:var(--avoid)}
+.source-note{margin:16px 18px 24px;font-size:11px;line-height:1.65;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:12px}
+
+/* safecard (legacy wrap) */
+.card-wrap{padding:20px 18px 24px}
+.card-intro{font-size:13px;line-height:1.6;color:var(--ink-soft);margin-bottom:14px}
+
+/* ===== dietary ID card ===== */
+.idcard{
+  position:relative;overflow:hidden;border-radius:18px;
+  background:linear-gradient(150deg,#123B32 0%,var(--brand-dark) 45%,var(--brand) 100%);
+  color:#F3F8F5;padding:18px 18px 14px;
+  box-shadow:0 14px 30px rgba(18,59,50,.32);
+  direction:ltr;text-align:left;
+}
+.idcard::before{ /* guilloche-ish texture */
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    repeating-conic-gradient(from 0deg at 110% -10%, rgba(255,255,255,.05) 0 2deg, transparent 2deg 9deg),
+    radial-gradient(circle at 108% -8%, rgba(255,255,255,.10), transparent 46%);
+}
+.idcard::after{ /* gold hairline */
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,#C9A961 30%,#EAD9AC 50%,#C9A961 70%,transparent);
+}
+.id-head{display:flex;justify-content:space-between;align-items:flex-start;position:relative}
+.id-title{font-family:var(--font-display);font-weight:700;font-size:16.5px;letter-spacing:.5px}
+.id-title-en{font-size:8.5px;letter-spacing:1.6px;opacity:.7;margin-top:3px;font-weight:700}
+.id-emblem{
+  width:34px;height:34px;border-radius:50%;flex:0 0 auto;
+  border:1.5px solid rgba(234,217,172,.75);color:#EAD9AC;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;font-size:13px;
+}
+.id-body{display:flex;gap:14px;margin-top:14px;position:relative}
+.id-photo{
+  flex:0 0 64px;height:80px;border-radius:10px;
+  background:rgba(243,248,245,.10);border:1px solid rgba(243,248,245,.25);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+}
+.id-photo .flag{font-size:30px;line-height:1}
+.id-photo .cc{font-size:9px;letter-spacing:1.5px;opacity:.7;font-weight:700}
+.id-fields{flex:1;min-width:0;display:flex;flex-direction:column;gap:9px}
+.id-field label{display:block;font-size:8.5px;letter-spacing:1.2px;opacity:.65;font-weight:700;margin-bottom:3px}
+.id-field .val{font-size:13.5px;font-weight:700;line-height:1.4}
+.id-noeat{display:flex;flex-wrap:wrap;gap:5px}
+.id-noeat span{
+  background:rgba(255,255,255,.94);color:#B3362E;
+  font-size:13px;font-weight:700;border-radius:7px;padding:3px 9px;
+  font-family:var(--font-ui);
+}
+.id-caution{display:flex;flex-wrap:wrap;gap:5px}
+.id-caution span{
+  background:rgba(234,217,172,.22);border:1px solid rgba(234,217,172,.5);color:#EAD9AC;
+  font-size:12px;font-weight:700;border-radius:7px;padding:3px 9px;
+}
+.id-msg{
+  margin-top:14px;position:relative;
+  font-family:var(--font-display);font-weight:700;font-size:14.5px;line-height:1.55;
+  border-top:1px solid rgba(243,248,245,.22);padding-top:11px;word-break:keep-all;
+}
+.id-foot{
+  margin-top:11px;display:flex;align-items:flex-end;justify-content:space-between;gap:8px;position:relative;
+}
+.id-foot .meta{font-size:9px;letter-spacing:1px;opacity:.7;line-height:1.7;font-weight:500}
+.id-qr{flex:0 0 auto;background:#F3F8F5;border-radius:6px;padding:4px;display:block}
+.pf-card-slot{margin-top:16px}
+.pf-card-hint{font-size:11.5px;color:var(--ink-soft);margin-top:9px;line-height:1.55;text-align:center}
+.safecard{background:linear-gradient(160deg,var(--brand-dark) 0%,var(--brand) 100%);border-radius:22px;color:#F3F8F5;padding:26px 22px 22px;position:relative;overflow:hidden;box-shadow:0 12px 28px rgba(30,83,71,.28)}
+.safecard::before{content:'';position:absolute;top:-34px;inset-inline-end:-34px;width:110px;height:110px;background:rgba(243,248,245,.10);transform:rotate(45deg)}
+.safecard .kicker{font-size:10.5px;letter-spacing:2px;font-weight:700;opacity:.75;text-transform:uppercase}
+.safecard .big{font-family:var(--font-display);font-weight:700;font-size:21px;line-height:1.55;margin:14px 0 16px;word-break:keep-all;direction:ltr;text-align:left}
+.safecard .sub{font-size:12.5px;line-height:1.6;opacity:.88;border-top:1px solid rgba(243,248,245,.25);padding-top:13px}
+.card-hint{font-size:11px;color:var(--ink-soft);text-align:center;margin-top:12px}
+.lang-row{display:flex;gap:6px;margin:18px 0 8px;flex-wrap:wrap}
+.lang-btn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 13px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font-ui);color:var(--ink)}
+.lang-btn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.empty-note{margin:14px 0;background:var(--card);border:1px dashed var(--line);border-radius:var(--radius);padding:22px 18px;text-align:center;font-size:13px;color:var(--ink-soft);line-height:1.7}
+
+/* nation & reco */
+.nat-hint{margin-top:9px;font-size:11.5px;line-height:1.55;color:var(--brand-dark);background:var(--brand-tint);border-radius:10px;padding:8px 11px;display:none}
+.nat-hint.show{display:block}
+.reco-scroll{display:flex;gap:9px;overflow-x:auto;padding:6px 18px 4px;scrollbar-width:none}
+.reco-scroll::-webkit-scrollbar{display:none}
+.reco-card{flex:0 0 132px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.reco-rank{font-size:10px;font-weight:700;color:var(--ink-soft)}
+.reco-name{font-family:var(--font-display);font-weight:700;font-size:15px;margin-top:4px}
+.reco-name small{font-family:var(--font-ui);font-weight:500;font-size:10.5px;color:var(--ink-soft);display:block;margin-top:2px}
+.reco-badge{display:inline-block;margin-top:9px;font-size:10.5px;font-weight:700;border-radius:7px;padding:3px 8px}
+.reco-badge.g{background:var(--safe-bg);color:var(--safe)}
+.reco-badge.y{background:var(--caution-bg);color:var(--caution)}
+.reco-badge.r{background:var(--avoid-bg);color:var(--avoid)}
+.reco-note{font-size:10.5px;color:var(--ink-soft);margin-top:5px;line-height:1.45}
+.reco-src{font-size:10px;color:var(--ink-soft);padding:6px 18px 0}
+
+/* profile */
+.prof-wrap{padding:20px 18px 30px}
+.prof-title{font-family:var(--font-display);font-size:21px;font-weight:700}
+.prof-sub{font-size:13px;color:var(--ink-soft);margin-top:6px;line-height:1.6}
+.prof-group{margin-top:22px}
+.prof-group h3{font-size:13px;font-weight:700;margin-bottom:4px}
+.prof-group h3 span{font-weight:400;color:var(--ink-soft)}
+.prof-group p{font-size:11.5px;color:var(--ink-soft);margin-bottom:10px;line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:9px 14px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-ui);color:var(--ink);transition:all .12s}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.chip:focus-visible,.lang-btn:focus-visible,.cta:focus-visible,button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.cta{width:100%;margin-top:26px;background:var(--ink);color:#fff;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font-ui)}
+.cta:disabled{opacity:.35;cursor:default}
+.cta:active:not(:disabled){opacity:.85}
+
+/* ===== welcome (step 1) ===== */
+#cover{position:absolute;inset:0;z-index:40;background:var(--bg);overflow-y:auto}
+.cover-step{display:none;min-height:100%}
+.cover-step.active{display:flex;flex-direction:column}
+.welcome-art{background:linear-gradient(168deg,var(--brand-dark) 0%,var(--brand) 62%,#4E9583 100%);color:#F3F8F5;padding:64px 26px 36px;position:relative;overflow:hidden}
+.welcome-art::after{content:'환영합니다';position:absolute;bottom:-26px;inset-inline-end:-8px;font-family:var(--font-display);font-size:96px;font-weight:700;opacity:.06;white-space:nowrap;pointer-events:none}
+.w-kicker{font-size:11px;letter-spacing:2.5px;font-weight:700;opacity:.8}
+.w-title{font-family:var(--font-display);font-size:34px;line-height:1.35;margin-top:16px;font-weight:700;word-break:keep-all}
+.w-sub{font-size:14px;line-height:1.75;margin-top:16px;opacity:.94;word-break:keep-all}
+.w-line{animation:fade .5s ease both}
+.welcome-body{padding:22px 26px 34px;flex:1}
+.w-q{font-size:14px;font-weight:700}
+.w-note{font-size:11.5px;color:var(--ink-soft);margin-top:4px;line-height:1.5}
+.nation-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px}
+.nation-btn{border:1px solid var(--line);background:var(--card);border-radius:13px;padding:12px 6px 10px;cursor:pointer;font-family:var(--font-ui);text-align:center;transition:all .12s}
+.nation-btn .f{font-size:22px;display:block}
+.nation-btn .n{font-size:11.5px;font-weight:500;margin-top:4px;display:block;color:var(--ink)}
+.nation-btn.on{background:var(--brand);border-color:var(--brand)}
+.nation-btn.on .n{color:#fff;font-weight:700}
+.w-greet{margin-top:16px;font-size:13.5px;line-height:1.7;color:var(--brand-dark);background:var(--brand-tint);border-radius:12px;padding:12px 14px;display:none;word-break:keep-all}
+.w-greet.show{display:block;animation:fade .3s ease}
+/* onboarding (step 2) */
+.ob-head{padding:46px 26px 6px}
+.ob-title{font-family:var(--font-display);font-size:24px;font-weight:700;line-height:1.4;word-break:keep-all}
+.ob-sub{font-size:13px;color:var(--ink-soft);margin-top:8px;line-height:1.6}
+.ob-body{padding:4px 26px 34px;flex:1}
+
+/* bottom nav */
+nav{position:absolute;bottom:0;left:0;right:0;z-index:30;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);display:flex;padding:8px 10px calc(10px + env(safe-area-inset-bottom))}
+nav button{flex:1;background:none;border:none;font-family:var(--font-ui);cursor:pointer;font-size:10.5px;font-weight:500;color:var(--ink-soft);display:flex;flex-direction:column;align-items:center;gap:4px;padding:5px 0}
+nav button svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav button.on{color:var(--brand-dark);font-weight:700}
+</style>
+</head>
+<body>
+<div id="phone">
+
+  <!-- ===== cover: step 1 welcome / step 2 profile ===== -->
+  <div id="cover">
+    <div class="cover-step active" id="step-welcome">
+      <div class="welcome-art">
+        <div class="w-kicker">SAFEPLATE KOREA</div>
+        <div class="w-title w-line" id="w-title">Welcome to Korea 🇰🇷</div>
+        <div class="w-sub w-line" id="w-sub" style="animation-delay:.12s">
+          We're truly glad you're here.<br>
+          먼 길 오시느라 고생 많으셨어요. 진심으로 환영합니다.
+        </div>
+      </div>
+      <div class="welcome-body">
+        <div class="w-q" id="w-q">Where are you visiting from?</div>
+        <div class="w-note" id="w-note">We'll greet you in your language. If yours isn't supported yet, we'll use English.</div>
+        <div class="nation-grid" id="nation-grid"></div>
+        <div class="w-greet" id="w-greet"></div>
+        <button class="cta" id="w-continue" disabled onclick="goStep2()">Continue</button>
+      </div>
+    </div>
+
+    <div class="cover-step" id="step-profile">
+      <div class="ob-head">
+        <div class="ob-title" id="ob-title"></div>
+        <div class="ob-sub" id="ob-sub"></div>
+      </div>
+      <div class="ob-body">
+        <div class="prof-group">
+          <h3 id="ob-cond-t"></h3><p id="ob-cond-d"></p>
+          <div class="chips" id="ob-cond"></div>
+        </div>
+        <div class="prof-group">
+          <h3 id="ob-alg-t"></h3><p id="ob-alg-d"></p>
+          <div class="chips" id="ob-alg"></div>
+        </div>
+        <div class="prof-group">
+          <h3 id="ob-rel-t"></h3><p id="ob-rel-d"></p>
+          <div class="chips" id="ob-rel"></div>
+          <div class="nat-hint" id="ob-nat-hint"></div>
+        </div>
+        <button class="cta" id="ob-start" onclick="finishOnboarding()"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== header ===== -->
+  <header>
+    <div class="brand-row">
+      <div class="brand">SafePlate <small>KOREA</small></div>
+      <button class="loc-chip" onclick="toggleArea()">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
+        <span id="area-name"></span> ▾
+      </button>
+    </div>
+    <div class="profile-strip" id="profile-strip"></div>
+  </header>
+
+  <main>
+    <section class="screen active" id="scr-explore">
+      <div id="reco-section"></div>
+      <div class="legend" id="legend"></div>
+      <div class="section-label" id="rest-count-label"></div>
+      <div class="rest-list" id="rest-list"></div>
+      <div class="source-note" id="explore-note"></div>
+    </section>
+
+    <section class="screen" id="scr-detail"></section>
+
+    <section class="screen" id="scr-card"><div class="card-wrap" id="card-body"></div></section>
+
+    <section class="screen" id="scr-profile">
+      <div class="prof-wrap">
+        <div class="prof-title" id="pf-title"></div>
+        <div class="prof-sub" id="pf-sub"></div>
+        <div class="pf-card-slot" id="pf-card-slot"></div>
+        <div class="prof-group">
+          <h3 id="pf-nat-t"></h3><p id="pf-nat-d"></p>
+          <div class="chips" id="pf-nat"></div>
+          <div class="nat-hint" id="pf-nat-hint"></div>
+        </div>
+        <div class="prof-group">
+          <h3 id="pf-cond-t"></h3><p id="pf-cond-d"></p>
+          <div class="chips" id="pf-cond"></div>
+        </div>
+        <div class="prof-group">
+          <h3 id="pf-alg-t"></h3><p id="pf-alg-d"></p>
+          <div class="chips" id="pf-alg"></div>
+        </div>
+        <div class="prof-group">
+          <h3 id="pf-rel-t"></h3><p id="pf-rel-d"></p>
+          <div class="chips" id="pf-rel"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav>
+    <button id="nav-explore" class="on" onclick="go('explore')">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span id="nav-explore-l"></span>
+    </button>
+    <button id="nav-card" onclick="go('card')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 10h7M7 14h4"/></svg>
+      <span id="nav-card-l"></span>
+    </button>
+    <button id="nav-profile" onclick="go('profile')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/></svg>
+      <span id="nav-profile-l"></span>
+    </button>
+  </nav>
+</div>
+
+<script>
+/* ================= i18n ================= */
+const STR = {
+ko:{
+  welcomeGreet:'환영합니다! 한국에서의 모든 끼니가 편안하고 즐겁기를 바라요.',
+  obTitle:'식사 걱정은 저희가 덜어드릴게요.',
+  obSub:'해당하는 항목을 선택하면 모든 식당과 메뉴를 당신 기준으로 판정해 드려요. 언제든 수정할 수 있어요.',
+  condT:'만성질환', condD:'식단 관리가 필요한 질환을 선택하세요.',
+  algT:'알레르기', algD:'표시대상 알레르겐 중 해당 항목을 선택하세요.',
+  relT:'종교·신념 식단', relD:'지켜야 하는 식단 원칙이 있다면 선택하세요.',
+  natT:'국적', natD:'인기 한식 추천과 안심카드 언어에만 사용돼요.',
+  optional:'(선택)', start:'프로필 저장하고 시작하기',
+  legend:['안심 메뉴 있음','골라 먹어야 함','안심 메뉴 없음'],
+  restCount:(a,n)=>`${a} 주변 식당 ${n}곳`,
+  srcTour:'출처: 한국관광공사 TourAPI',
+  exploreNote:'데이터 출처: 한국관광공사 TourAPI 음식점 정보 및 식약처 외식 영양성분 DB. 메뉴 판정은 AI 재료 추정에 기반한 <b>참고용 사전 스크리닝</b>이며, 주문 전 반드시 매장에 직접 확인하세요.',
+  back:'← 목록으로', badge:{g:'안심',y:'조건부',r:'주의'},
+  vSafe:(s,c)=>`안심 메뉴 ${s}개${c?` · 조건부 ${c}개`:''}`,
+  vCond:c=>`조건부 메뉴 ${c}개 — 골라서 주문하세요`,
+  vNone:'현재 프로필로 안심 메뉴가 없어요',
+  detailSub:a=>`${a} · 영업정보: 한국관광공사 TourAPI 연동`,
+  detailNote:'메뉴 재료·영양 등급은 TourAPI 취급메뉴 텍스트에 대한 AI 추정과 식약처 표준 DB 매칭 결과입니다. <b>주문 전 매장 확인</b>이 필요하며, 안심카드를 활용하세요.',
+  r_contain:x=>`<b>${x}</b> 포함 추정 — 섭취 부적합`,
+  r_adjust:x=>`<b>${x}</b> 포함 — 제외 주문 가능 여부 확인`,
+  r_cross:x=>`<b>${x}</b> 교차오염 가능성 — 조리환경 확인 필요`,
+  r_pork:'<b>돼지고기/주류</b> 포함 — 할랄 부적합',
+  r_halalOk:'<b>할랄 적합</b> 메뉴',
+  r_halalCheck:'육류 포함 — <b>할랄 도축 여부</b> 확인 필요',
+  r_flesh:'<b>육류·어패류</b> 포함 — 채식 부적합',
+  r_vegiOk:'<b>채식 가능</b> 메뉴',
+  r_vegiCheck:'육수·양념의 <b>동물성 원료</b> 확인 필요',
+  r_naHigh:'<b>나트륨 높음</b> 추정 — 국물 섭취 주의',
+  r_naLow:'<b>나트륨 낮음</b> 추정',
+  r_suHigh:'<b>당류 높음</b> 추정 — 혈당 관리 주의',
+  r_suLow:'<b>당류 낮음</b> 추정',
+  r_none:'등록된 프로필 기준 특이 제약 없음',
+  r_koNo:'<b>돼지고기/갑각류·조개</b> 포함 — 코셔 부적합',
+  r_koMix:'<b>육류+유제품</b> 혼합 — 코셔 부적합',
+  r_koCheck:'육류 포함 — <b>코셔 도축 여부</b> 확인 필요',
+  r_hindu:'<b>쇠고기</b> 포함 — 힌두 식단 부적합',
+  r_hinduCheck:'육류 포함 — <b>고기 종류</b> 확인 필요',
+  r_pungent:'<b>오신채(마늘·파 등)</b> 포함 — 사찰식 부적합',
+  r_pungentCheck:'양념의 <b>마늘·파 사용 여부</b> 확인 필요',
+  r_veganNo:'<b>계란·유제품</b> 포함 — 비건 부적합',
+  r_veganOk:'<b>비건 가능</b> 메뉴',
+  r_pescoNo:'<b>육류</b> 포함 — 페스코 부적합',
+  r_purine:'<b>퓨린 높음</b> 추정(진한 육수·내장·해산물) — 통풍 주의',
+  r_fat:'<b>포화지방 높음</b> 추정 — 고지혈증 주의',
+  r_spicy:'<b>맵고 자극적인</b> 음식 — 위 부담 주의',
+  r_glu:'<b>밀(글루텐)</b> 포함 추정 — 섭취 부적합',
+  r_gluSoy:'간장·양념의 <b>글루텐</b> 확인 필요 — 한국 간장은 밀 함유가 많아요',
+  cardIntro:'식당에서 이 화면을 직원에게 보여주세요. 한국어 문장은 사장님이, 아래 설명은 본인이 확인해요.',
+  cardKicker:'SafePlate · 식이 제약 안내',
+  cardHint:'언어를 바꾸면 카드 하단 설명이 변경돼요.',
+  cardEmpty:'아직 등록된 식이 제약이 없어요.<br>프로필을 등록하면 식당 직원에게 보여줄<br>안심카드가 자동 생성됩니다.',
+  cardRegister:'프로필 등록하기',
+  cardSub:'이 카드는 손님의 식이 제약을 설명합니다.',
+  cardQ:'직원에게: "이 재료를 빼고 조리 가능한가요?"',
+  pfTitle:'내 프로필', pfSub:'변경 즉시 모든 판정이 다시 계산돼요.',
+  nav:['식당 찾기','안심카드','내 프로필'],
+  recoTitle:(f,l)=>`${f} ${l} 여행자 인기 한식 — 내 판정 포함`,
+  recoRank:i=>`인기 ${i}위`,
+  recoSrc:'출처: 한국관광공사 외래관광객조사 기반 구성 (시연용 예시)',
+  suggestHalal:'이 국가의 여행자는 할랄 프로필을 많이 사용해요. 필요하면 직접 선택하세요.',
+  suggestVegi:'이 국가의 여행자는 채식 프로필을 많이 사용해요. 필요하면 직접 선택하세요.',
+  empty:'프로필이 비어 있어요 — 내 프로필에서 등록하세요',
+},
+en:{
+  welcomeGreet:"Welcome! We hope every single meal in Korea feels safe, warm, and joyful for you.",
+  obTitle:"Let us take the worry out of eating here.",
+  obSub:"Pick what applies to you, and we'll judge every restaurant and menu by your standards. You can change this anytime.",
+  condT:'Health conditions', condD:'Select any condition that requires dietary care.',
+  algT:'Allergies', algD:'Select from Korea\u2019s labeled allergens.',
+  relT:'Religious / lifestyle diet', relD:'Select any dietary rule you follow.',
+  natT:'Country', natD:'Used only for dish picks and card language.',
+  optional:'(optional)', start:'Save my profile & start',
+  legend:['Has safe menus','Choose carefully','No safe menu'],
+  restCount:(a,n)=>`${n} restaurants near ${a}`,
+  srcTour:'Source: Korea Tourism Org. TourAPI',
+  exploreNote:'Data: KTO TourAPI restaurant info & MFDS nutrition DB. Verdicts are AI-estimated <b>pre-screening for reference</b> — always confirm with staff before ordering.',
+  back:'← Back to list', badge:{g:'Safe',y:'Check',r:'Avoid'},
+  vSafe:(s,c)=>`${s} safe menu${s>1?'s':''}${c?` · ${c} conditional`:''}`,
+  vCond:c=>`${c} conditional menu${c>1?'s':''} — order carefully`,
+  vNone:'No safe menu for your profile',
+  detailSub:a=>`${a} · Info via KTO TourAPI`,
+  detailNote:'Ingredient & nutrition grades are AI estimates from TourAPI menu text matched to the MFDS standard DB. <b>Confirm with staff before ordering</b> — use the Care Card below.',
+  r_contain:x=>`Likely contains <b>${x}</b> — not suitable`,
+  r_adjust:x=>`Contains <b>${x}</b> — ask if it can be removed`,
+  r_cross:x=>`Possible <b>${x}</b> cross-contact — check kitchen`,
+  r_pork:'Contains <b>pork/alcohol</b> — not halal',
+  r_halalOk:'<b>Halal-suitable</b> dish',
+  r_halalCheck:'Contains meat — <b>check halal slaughter</b>',
+  r_flesh:'Contains <b>meat/seafood</b> — not vegetarian',
+  r_vegiOk:'<b>Vegetarian-friendly</b> dish',
+  r_vegiCheck:'Check <b>animal-based broth/seasoning</b>',
+  r_naHigh:'Estimated <b>high sodium</b> — go easy on the broth',
+  r_naLow:'Estimated <b>low sodium</b>',
+  r_suHigh:'Estimated <b>high sugar</b> — mind blood sugar',
+  r_suLow:'Estimated <b>low sugar</b>',
+  r_none:'No conflicts with your profile',
+  r_koNo:'Contains <b>pork/shellfish</b> — not kosher',
+  r_koMix:'<b>Meat + dairy</b> together — not kosher',
+  r_koCheck:'Contains meat — <b>check kosher slaughter</b>',
+  r_hindu:'Contains <b>beef</b> — not suitable for Hindu diet',
+  r_hinduCheck:'Contains meat — <b>check which meat</b> is used',
+  r_pungent:'Contains <b>garlic/onion (pungent veg.)</b> — not temple-diet',
+  r_pungentCheck:'Check if <b>garlic/onion</b> is used in seasoning',
+  r_veganNo:'Contains <b>egg/dairy</b> — not vegan',
+  r_veganOk:'<b>Vegan-friendly</b> dish',
+  r_pescoNo:'Contains <b>land meat</b> — not pescatarian',
+  r_purine:'Estimated <b>high purine</b> (rich broth/organ/seafood) — gout caution',
+  r_fat:'Estimated <b>high saturated fat</b> — cholesterol caution',
+  r_spicy:'<b>Spicy & irritating</b> — may burden the stomach',
+  r_glu:'Likely contains <b>wheat (gluten)</b> — not suitable',
+  r_gluSoy:'Check <b>gluten</b> in soy sauce/seasoning — Korean soy sauce often contains wheat',
+  cardIntro:'Show this screen to restaurant staff. The big Korean text is for them; the note below is for you.',
+  cardKicker:'SafePlate · Dietary notice',
+  cardHint:'Switching language changes the note below the card.',
+  cardEmpty:'No dietary restrictions registered yet.<br>Add your profile to auto-generate a Care Card<br>you can show to restaurant staff.',
+  cardRegister:'Set up my profile',
+  cardSub:'This card explains the guest\u2019s dietary restrictions.',
+  cardQ:'To staff: \u201cCan this dish be made without these ingredients?\u201d',
+  pfTitle:'My profile', pfSub:'All verdicts recalculate instantly when you change this.',
+  nav:['Explore','Care Card','Profile'],
+  recoTitle:(f,l)=>`${f} Favorites of travelers from ${l} — with your verdicts`,
+  recoRank:i=>`#${i} pick`,
+  recoSrc:'Based on KTO International Visitor Survey (demo data)',
+  suggestHalal:'Many travelers from your country use the halal profile. Select it above if it applies to you.',
+  suggestVegi:'Many travelers from your country use the vegetarian profile. Select it above if it applies to you.',
+  empty:'Profile is empty — set it up in the Profile tab',
+},
+ja:{
+  welcomeGreet:'ようこそ！韓国でのすべての食事が、安心で楽しいものになりますように。',
+  obTitle:'食事の心配は、私たちにお任せください。',
+  obSub:'当てはまる項目を選ぶと、すべての飲食店とメニューをあなた基準で判定します。いつでも変更できます。',
+  condT:'慢性疾患', condD:'食事管理が必要な疾患を選択してください。',
+  algT:'アレルギー', algD:'該当するアレルゲンを選択してください。',
+  relT:'宗教・信条の食事', relD:'守るべき食のルールがあれば選択してください。',
+  natT:'国籍', natD:'おすすめ料理とカード言語のみに使用します。',
+  optional:'（任意）', start:'プロフィールを保存して始める',
+  legend:['安心メニューあり','選んで注文','安心メニューなし'],
+  restCount:(a,n)=>`${a}周辺の飲食店 ${n}軒`,
+  srcTour:'出典: 韓国観光公社 TourAPI',
+  exploreNote:'データ: 韓国観光公社TourAPIと食薬処の栄養DB。判定はAI推定による<b>参考用の事前スクリーニング</b>です。注文前に必ず店舗でご確認ください。',
+  back:'← 一覧へ戻る', badge:{g:'安心',y:'要確認',r:'注意'},
+  vSafe:(s,c)=>`安心メニュー${s}品${c?` · 条件付き${c}品`:''}`,
+  vCond:c=>`条件付きメニュー${c}品 — 選んで注文を`,
+  vNone:'現在のプロフィールでは安心メニューなし',
+  detailSub:a=>`${a} · 情報: 韓国観光公社TourAPI連携`,
+  detailNote:'食材・栄養の等級はTourAPIメニューテキストのAI推定と食薬処標準DBの照合結果です。<b>注文前に店舗で確認</b>し、安心カードをご活用ください。',
+  r_contain:x=>`<b>${x}</b>を含む可能性 — 摂取不適`,
+  r_adjust:x=>`<b>${x}</b>を含む — 抜き注文が可能か確認`,
+  r_cross:x=>`<b>${x}</b>の混入可能性 — 調理環境を確認`,
+  r_pork:'<b>豚肉/アルコール</b>を含む — ハラール不適合',
+  r_halalOk:'<b>ハラール適合</b>メニュー',
+  r_halalCheck:'肉類を含む — <b>ハラール処理か確認</b>',
+  r_flesh:'<b>肉・魚介類</b>を含む — ベジタリアン不適合',
+  r_vegiOk:'<b>ベジタリアン対応</b>メニュー',
+  r_vegiCheck:'だし・調味料の<b>動物性原料</b>を確認',
+  r_naHigh:'<b>塩分高め</b>と推定 — スープの飲み過ぎ注意',
+  r_naLow:'<b>塩分低め</b>と推定',
+  r_suHigh:'<b>糖分高め</b>と推定 — 血糖管理に注意',
+  r_suLow:'<b>糖分低め</b>と推定',
+  r_none:'プロフィール上、特に制約なし',
+  r_koNo:'<b>豚肉/甲殻類・貝</b>を含む — コーシャ不適合',
+  r_koMix:'<b>肉+乳製品</b>の混合 — コーシャ不適合',
+  r_koCheck:'肉類を含む — <b>コーシャ処理か確認</b>',
+  r_hindu:'<b>牛肉</b>を含む — ヒンドゥー食不適合',
+  r_hinduCheck:'肉類を含む — <b>肉の種類を確認</b>',
+  r_pungent:'<b>五辛（にんにく・ねぎ等）</b>を含む — 精進料理不適合',
+  r_pungentCheck:'調味の<b>にんにく・ねぎ使用</b>を確認',
+  r_veganNo:'<b>卵・乳製品</b>を含む — ヴィーガン不適合',
+  r_veganOk:'<b>ヴィーガン対応</b>メニュー',
+  r_pescoNo:'<b>肉類</b>を含む — ペスコ不適合',
+  r_purine:'<b>プリン体高め</b>と推定（濃い出汁・内臓・魚介） — 痛風注意',
+  r_fat:'<b>飽和脂肪高め</b>と推定 — 脂質異常症注意',
+  r_spicy:'<b>辛く刺激的</b>な料理 — 胃への負担に注意',
+  r_glu:'<b>小麦（グルテン）</b>を含む可能性 — 摂取不適',
+  r_gluSoy:'醤油・タレの<b>グルテン</b>を確認 — 韓国醤油は小麦入りが多いです',
+  cardIntro:'この画面をお店のスタッフに見せてください。大きな韓国語はお店用、下の説明はあなた用です。',
+  cardKicker:'SafePlate · 食事制限のご案内',
+  cardHint:'言語を切り替えると下の説明が変わります。',
+  cardEmpty:'食事制限がまだ登録されていません。<br>プロフィールを登録すると、お店に見せられる<br>安心カードが自動生成されます。',
+  cardRegister:'プロフィールを登録',
+  cardSub:'このカードはお客様の食事制限を説明しています。',
+  cardQ:'スタッフへ:「この食材を抜いて調理できますか？」',
+  pfTitle:'マイプロフィール', pfSub:'変更するとすべての判定が即時に再計算されます。',
+  nav:['お店を探す','安心カード','プロフィール'],
+  recoTitle:(f,l)=>`${f} ${l}の旅行者に人気の韓国料理 — あなたの判定つき`,
+  recoRank:i=>`人気${i}位`,
+  recoSrc:'出典: 韓国観光公社 外来観光客調査に基づく構成（デモ用）',
+  suggestHalal:'この国の旅行者はハラールプロフィールをよく使います。必要なら上で選択してください。',
+  suggestVegi:'この国の旅行者はベジタリアンプロフィールをよく使います。必要なら上で選択してください。',
+  empty:'プロフィールが未設定です — プロフィールタブで登録を',
+},
+zh:{
+  welcomeGreet:'欢迎您！愿您在韩国的每一餐都安心又愉快。',
+  obTitle:'吃饭的顾虑，交给我们。',
+  obSub:'选择适用于您的项目，我们将按您的标准判定每家餐厅和每道菜。随时可以修改。',
+  condT:'慢性疾病', condD:'请选择需要饮食管理的疾病。',
+  algT:'过敏原', algD:'请选择您的过敏原。',
+  relT:'宗教/理念饮食', relD:'如有需要遵守的饮食原则，请选择。',
+  natT:'国籍', natD:'仅用于推荐菜品和卡片语言。',
+  optional:'（可选）', start:'保存资料并开始',
+  legend:['有安心菜品','需挑选','无安心菜品'],
+  restCount:(a,n)=>`${a}附近餐厅 ${n}家`,
+  srcTour:'来源: 韩国观光公社 TourAPI',
+  exploreNote:'数据来源: 韩国观光公社TourAPI及食药处营养数据库。判定为AI推测的<b>参考性预筛查</b>，点餐前请务必向店家确认。',
+  back:'← 返回列表', badge:{g:'安心',y:'需确认',r:'注意'},
+  vSafe:(s,c)=>`安心菜品${s}道${c?` · 有条件${c}道`:''}`,
+  vCond:c=>`有条件菜品${c}道 — 请挑选点餐`,
+  vNone:'按当前资料没有安心菜品',
+  detailSub:a=>`${a} · 信息: 韩国观光公社TourAPI`,
+  detailNote:'食材与营养等级来自TourAPI菜单文本的AI推测及食药处标准库匹配。<b>点餐前请向店家确认</b>，并使用安心卡。',
+  r_contain:x=>`可能含<b>${x}</b> — 不宜食用`,
+  r_adjust:x=>`含<b>${x}</b> — 请确认能否去除`,
+  r_cross:x=>`可能有<b>${x}</b>交叉污染 — 请确认厨房环境`,
+  r_pork:'含<b>猪肉/酒精</b> — 不符合清真',
+  r_halalOk:'<b>符合清真</b>的菜品',
+  r_halalCheck:'含肉类 — 请<b>确认清真屠宰</b>',
+  r_flesh:'含<b>肉类/海鲜</b> — 不适合素食',
+  r_vegiOk:'<b>素食友好</b>菜品',
+  r_vegiCheck:'请确认高汤/调料中的<b>动物性原料</b>',
+  r_naHigh:'推测<b>钠含量高</b> — 少喝汤',
+  r_naLow:'推测<b>钠含量低</b>',
+  r_suHigh:'推测<b>糖分高</b> — 注意血糖',
+  r_suLow:'推测<b>糖分低</b>',
+  r_none:'按您的资料无特殊限制',
+  r_koNo:'含<b>猪肉/甲壳类·贝类</b> — 不符合洁食',
+  r_koMix:'<b>肉类+乳制品</b>混合 — 不符合洁食',
+  r_koCheck:'含肉类 — 请<b>确认洁食屠宰</b>',
+  r_hindu:'含<b>牛肉</b> — 不适合印度教饮食',
+  r_hinduCheck:'含肉类 — 请<b>确认肉的种类</b>',
+  r_pungent:'含<b>五辛（蒜/葱等）</b> — 不适合素斋',
+  r_pungentCheck:'请确认调味中是否<b>使用蒜/葱</b>',
+  r_veganNo:'含<b>鸡蛋/乳制品</b> — 不适合纯素',
+  r_veganOk:'<b>纯素友好</b>菜品',
+  r_pescoNo:'含<b>畜禽肉</b> — 不适合鱼素',
+  r_purine:'推测<b>嘌呤较高</b>（浓汤/内脏/海鲜） — 痛风注意',
+  r_fat:'推测<b>饱和脂肪较高</b> — 高血脂注意',
+  r_spicy:'<b>辛辣刺激</b> — 注意肠胃负担',
+  r_glu:'可能含<b>小麦（麸质）</b> — 不宜食用',
+  r_gluSoy:'请确认酱油/调味中的<b>麸质</b> — 韩国酱油多含小麦',
+  cardIntro:'请向餐厅工作人员出示此屏幕。大字韩文给店家看，下方说明供您确认。',
+  cardKicker:'SafePlate · 饮食限制说明',
+  cardHint:'切换语言可更改卡片下方的说明。',
+  cardEmpty:'尚未登记饮食限制。<br>登记资料后将自动生成<br>可出示给店家的安心卡。',
+  cardRegister:'登记我的资料',
+  cardSub:'此卡说明客人的饮食限制。',
+  cardQ:'向店员提问：“这道菜可以不放这些食材吗？”',
+  pfTitle:'我的资料', pfSub:'修改后所有判定将立即重新计算。',
+  nav:['找餐厅','安心卡','我的资料'],
+  recoTitle:(f,l)=>`${f} ${l}游客喜爱的韩餐 — 含您的判定`,
+  recoRank:i=>`人气第${i}`,
+  recoSrc:'依据韩国观光公社入境游客调查构成（演示数据）',
+  suggestHalal:'来自贵国的游客常使用清真资料。如适用请在上方选择。',
+  suggestVegi:'来自贵国的游客常使用素食资料。如适用请在上方选择。',
+  empty:'资料为空 — 请在“我的资料”中登记',
+},
+ar:{
+  welcomeGreet:'أهلاً وسهلاً! نتمنى أن تكون كل وجبة لك في كوريا آمنة وممتعة.',
+  obTitle:'دع قلق الطعام علينا.',
+  obSub:'اختر ما ينطبق عليك وسنقيّم كل مطعم وكل طبق وفق معاييرك. يمكنك التعديل في أي وقت.',
+  condT:'حالات صحية', condD:'اختر أي حالة تتطلب عناية غذائية.',
+  algT:'الحساسية', algD:'اختر مسببات الحساسية التي تنطبق عليك.',
+  relT:'نظام غذائي ديني', relD:'اختر أي قاعدة غذائية تلتزم بها.',
+  natT:'الدولة', natD:'تُستخدم فقط لاقتراح الأطباق ولغة البطاقة.',
+  optional:'(اختياري)', start:'احفظ ملفي وابدأ',
+  legend:['يوجد أطباق آمنة','اختر بعناية','لا أطباق آمنة'],
+  restCount:(a,n)=>`${n} مطاعم قرب ${a}`,
+  srcTour:'المصدر: هيئة السياحة الكورية TourAPI',
+  exploreNote:'البيانات: TourAPI وقاعدة التغذية الحكومية. التقييم <b>فحص مبدئي تقديري بالذكاء الاصطناعي</b> — تأكد دائماً من المطعم قبل الطلب.',
+  back:'→ العودة للقائمة', badge:{g:'آمن',y:'تحقّق',r:'تجنّب'},
+  vSafe:(s,c)=>`${s} أطباق آمنة${c?` · ${c} مشروطة`:''}`,
+  vCond:c=>`${c} أطباق مشروطة — اطلب بعناية`,
+  vNone:'لا يوجد طبق آمن وفق ملفك',
+  detailSub:a=>`${a} · المعلومات عبر TourAPI`,
+  detailNote:'درجات المكونات والتغذية تقديرات ذكاء اصطناعي مطابقة لقاعدة بيانات رسمية. <b>تأكد من المطعم قبل الطلب</b> واستخدم بطاقة الاطمئنان.',
+  r_contain:x=>`قد يحتوي على <b>${x}</b> — غير مناسب`,
+  r_adjust:x=>`يحتوي على <b>${x}</b> — اسأل إن أمكن إزالته`,
+  r_cross:x=>`احتمال تلوث تبادلي بـ<b>${x}</b> — تحقّق من المطبخ`,
+  r_pork:'يحتوي على <b>لحم خنزير/كحول</b> — غير حلال',
+  r_halalOk:'طبق <b>مناسب للحلال</b>',
+  r_halalCheck:'يحتوي على لحم — <b>تحقّق من الذبح الحلال</b>',
+  r_flesh:'يحتوي على <b>لحوم/مأكولات بحرية</b> — غير نباتي',
+  r_vegiOk:'طبق <b>مناسب للنباتيين</b>',
+  r_vegiCheck:'تحقّق من <b>المكونات الحيوانية</b> في المرق والتوابل',
+  r_naHigh:'تقدير <b>صوديوم مرتفع</b> — قلّل من الحساء',
+  r_naLow:'تقدير <b>صوديوم منخفض</b>',
+  r_suHigh:'تقدير <b>سكر مرتفع</b> — انتبه لسكر الدم',
+  r_suLow:'تقدير <b>سكر منخفض</b>',
+  r_none:'لا تعارض مع ملفك',
+  r_koNo:'يحتوي على <b>خنزير/قشريات ومحار</b> — غير كوشر',
+  r_koMix:'<b>لحم + ألبان</b> معاً — غير كوشر',
+  r_koCheck:'يحتوي على لحم — <b>تحقّق من الذبح الكوشر</b>',
+  r_hindu:'يحتوي على <b>لحم بقري</b> — لا يناسب الهندوس',
+  r_hinduCheck:'يحتوي على لحم — <b>تحقّق من نوع اللحم</b>',
+  r_pungent:'يحتوي على <b>ثوم/بصل</b> — لا يناسب طعام المعبد',
+  r_pungentCheck:'تحقّق من استخدام <b>الثوم/البصل</b> في التتبيل',
+  r_veganNo:'يحتوي على <b>بيض/ألبان</b> — غير نباتي صرف',
+  r_veganOk:'طبق <b>مناسب للنباتيين الصرف</b>',
+  r_pescoNo:'يحتوي على <b>لحوم</b> — لا يناسب البيسكاتاري',
+  r_purine:'تقدير <b>بيورين مرتفع</b> (مرق غني/أحشاء/مأكولات بحرية) — انتبه للنقرس',
+  r_fat:'تقدير <b>دهون مشبعة مرتفعة</b> — انتبه للكوليسترول',
+  r_spicy:'<b>حار ومهيّج</b> — قد يرهق المعدة',
+  r_glu:'قد يحتوي على <b>قمح (غلوتين)</b> — غير مناسب',
+  r_gluSoy:'تحقّق من <b>الغلوتين</b> في صلصة الصويا — غالباً تحتوي على قمح في كوريا',
+  cardIntro:'أظهر هذه الشاشة لموظفي المطعم. النص الكوري الكبير لهم، والشرح أدناه لك.',
+  cardKicker:'SafePlate · تنبيه غذائي',
+  cardHint:'تغيير اللغة يغيّر الشرح أسفل البطاقة.',
+  cardEmpty:'لم تُسجّل قيود غذائية بعد.<br>سجّل ملفك لإنشاء بطاقة اطمئنان<br>تعرضها لموظفي المطعم.',
+  cardRegister:'إعداد ملفي',
+  cardSub:'تشرح هذه البطاقة القيود الغذائية للضيف.',
+  cardQ:'للموظفين: "هل يمكن تحضير هذا الطبق بدون هذه المكونات؟"',
+  pfTitle:'ملفي', pfSub:'تُعاد جميع التقييمات فوراً عند التغيير.',
+  nav:['استكشاف','بطاقة الاطمئنان','ملفي'],
+  recoTitle:(f,l)=>`${f} أطباق يفضّلها مسافرو ${l} — مع تقييمك`,
+  recoRank:i=>`المفضل ${i}`,
+  recoSrc:'استناداً إلى مسح الزوار الدوليين لهيئة السياحة الكورية (بيانات تجريبية)',
+  suggestHalal:'كثير من مسافري بلدك يستخدمون ملف الحلال. اختره أعلاه إن كان ينطبق عليك.',
+  suggestVegi:'كثير من مسافري بلدك يستخدمون الملف النباتي. اختره أعلاه إن كان ينطبق عليك.',
+  empty:'الملف فارغ — سجّله من تبويب ملفي',
+},
+};
+const t = () => STR[uiLang] || STR.en;
+
+/* ===== labels (per-lang) ===== */
+const TAG_LABEL = {
+  pork:{ko:'돼지고기',en:'pork',ja:'豚肉',zh:'猪肉',ar:'لحم خنزير'},
+  beef:{ko:'쇠고기',en:'beef',ja:'牛肉',zh:'牛肉',ar:'لحم بقري'},
+  chicken:{ko:'닭고기',en:'chicken',ja:'鶏肉',zh:'鸡肉',ar:'دجاج'},
+  meat:{ko:'육류',en:'meat',ja:'肉類',zh:'肉类',ar:'لحوم'},
+  fish:{ko:'생선',en:'fish',ja:'魚類',zh:'鱼类',ar:'سمك'},
+  shellfish:{ko:'갑각류',en:'shellfish',ja:'甲殻類',zh:'甲壳类',ar:'قشريات'},
+  mollusk:{ko:'조개·오징어류',en:'mollusks/squid',ja:'貝・イカ類',zh:'贝类/鱿鱼',ar:'محار/حبار'},
+  peanut:{ko:'땅콩',en:'peanut',ja:'ピーナッツ',zh:'花生',ar:'فول سوداني'},
+  nut:{ko:'견과류(호두·잣)',en:'tree nuts',ja:'ナッツ類',zh:'坚果',ar:'مكسرات'},
+  milk:{ko:'우유',en:'milk',ja:'乳',zh:'牛奶',ar:'حليب'},
+  egg:{ko:'계란',en:'egg',ja:'卵',zh:'鸡蛋',ar:'بيض'},
+  wheat:{ko:'밀',en:'wheat',ja:'小麦',zh:'小麦',ar:'قمح'},
+  buckwheat:{ko:'메밀',en:'buckwheat',ja:'そば',zh:'荞麦',ar:'حنطة سوداء'},
+  soy:{ko:'대두(콩)',en:'soy',ja:'大豆',zh:'大豆',ar:'صويا'},
+  alcohol:{ko:'주류',en:'alcohol',ja:'酒類',zh:'酒类',ar:'كحول'},
+  pungent:{ko:'오신채(마늘·파 등)',en:'pungent vegetables (garlic etc.)',ja:'五辛（にんにく等）',zh:'五辛（蒜等）',ar:'خضروات نفاذة (ثوم)'},
+};
+const tl = id => TAG_LABEL[id][uiLang] || TAG_LABEL[id].en;
+
+const CONDITIONS = [
+  {id:'sodium', label:{ko:'고혈압·신장질환 (나트륨 제한)',en:'Hypertension/kidney (low sodium)',ja:'高血圧・腎疾患（減塩）',zh:'高血压/肾病（限钠）',ar:'ضغط/كلى (صوديوم منخفض)'}},
+  {id:'sugar',  label:{ko:'당뇨 (당류 관리)',en:'Diabetes (sugar control)',ja:'糖尿病（糖質管理）',zh:'糖尿病（控糖）',ar:'سكري (تحكم بالسكر)'}},
+  {id:'gout',   label:{ko:'통풍 (퓨린 제한)',en:'Gout (low purine)',ja:'痛風（プリン体制限）',zh:'痛风（限嘌呤）',ar:'نقرس (بيورين منخفض)'}},
+  {id:'lipid',  label:{ko:'고지혈증 (포화지방 제한)',en:'High cholesterol (low sat. fat)',ja:'脂質異常症（飽和脂肪制限）',zh:'高血脂（限饱和脂肪）',ar:'كوليسترول مرتفع (دهون مشبعة أقل)'}},
+  {id:'gerd',   label:{ko:'위염·역류성 식도염 (자극 제한)',en:'Gastritis/GERD (avoid irritation)',ja:'胃炎・逆流性食道炎（刺激物制限）',zh:'胃炎/反流性食管炎（忌辛辣）',ar:'التهاب المعدة/الارتجاع (تجنب المهيّجات)'}},
+  {id:'gluten', label:{ko:'셀리악병 (글루텐 제한)',en:'Celiac (gluten-free)',ja:'セリアック（グルテンフリー）',zh:'乳糜泻（无麸质）',ar:'سيلياك (خالٍ من الغلوتين)'}},
+];
+const ALLERGENS = [
+  {id:'peanut', label:{ko:'땅콩',en:'Peanut',ja:'ピーナッツ',zh:'花生',ar:'فول سوداني'}},
+  {id:'nut', label:{ko:'견과류(호두·잣)',en:'Tree nuts (walnut/pine nut)',ja:'ナッツ類（くるみ・松の実）',zh:'坚果（核桃/松子）',ar:'مكسرات (جوز/صنوبر)'}},
+  {id:'shellfish', label:{ko:'갑각류(새우·게)',en:'Shellfish (shrimp/crab)',ja:'甲殻類（エビ・カニ）',zh:'甲壳类（虾蟹）',ar:'قشريات (روبيان/سلطعون)'}},
+  {id:'mollusk', label:{ko:'조개·오징어류',en:'Mollusks (clam/squid)',ja:'貝・イカ類',zh:'贝类/鱿鱼',ar:'محار وحبار'}},
+  {id:'fish', label:{ko:'생선(고등어 등)',en:'Fish (mackerel etc.)',ja:'魚（サバ等）',zh:'鱼类（鲭鱼等）',ar:'سمك (ماكريل)'}},
+  {id:'milk', label:{ko:'우유',en:'Milk',ja:'乳',zh:'牛奶',ar:'حليب'}},
+  {id:'egg', label:{ko:'계란(알류)',en:'Egg',ja:'卵',zh:'鸡蛋',ar:'بيض'}},
+  {id:'wheat', label:{ko:'밀',en:'Wheat',ja:'小麦',zh:'小麦',ar:'قمح'}},
+  {id:'buckwheat', label:{ko:'메밀',en:'Buckwheat',ja:'そば',zh:'荞麦',ar:'حنطة سوداء'}},
+  {id:'soy', label:{ko:'대두(콩)',en:'Soy',ja:'大豆',zh:'大豆',ar:'صويا'}},
+  {id:'pork', label:{ko:'돼지고기',en:'Pork',ja:'豚肉',zh:'猪肉',ar:'لحم خنزير'}},
+  {id:'beef', label:{ko:'쇠고기',en:'Beef',ja:'牛肉',zh:'牛肉',ar:'لحم بقري'}},
+  {id:'chicken', label:{ko:'닭고기',en:'Chicken',ja:'鶏肉',zh:'鸡肉',ar:'دجاج'}},
+];
+const RELIGIOUS = [
+  {id:'halal', label:{ko:'할랄 · 이슬람 (돼지고기·주류 ✕)',en:'Halal · Islam (no pork/alcohol)',ja:'ハラール（豚肉・酒✕）',zh:'清真（禁猪肉/酒）',ar:'حلال (بلا خنزير/كحول)'}},
+  {id:'kosher', label:{ko:'코셔 · 유대교 (돼지·갑각류 ✕, 육류+유제품 혼합 ✕)',en:'Kosher · Judaism (no pork/shellfish, no meat+dairy)',ja:'コーシャ（豚・甲殻類✕、肉+乳✕）',zh:'犹太洁食（禁猪/甲壳类，肉奶不混）',ar:'كوشر (بلا خنزير/قشريات، بلا لحم+ألبان)'}},
+  {id:'hindu', label:{ko:'힌두교 (쇠고기 ✕)',en:'Hindu (no beef)',ja:'ヒンドゥー（牛肉✕）',zh:'印度教（禁牛肉）',ar:'هندوسي (بلا لحم بقري)'}},
+  {id:'buddhist', label:{ko:'사찰식 · 불교 (육류·오신채 ✕)',en:'Buddhist (no meat, no garlic/onion)',ja:'精進料理（肉・五辛✕）',zh:'素斋（禁肉/五辛）',ar:'بوذي (بلا لحم/ثوم وبصل)'}},
+  {id:'vegan', label:{ko:'비건 (모든 동물성 ✕)',en:'Vegan (no animal products)',ja:'ヴィーガン（動物性すべて✕）',zh:'纯素（禁所有动物性）',ar:'نباتي صرف (بلا منتجات حيوانية)'}},
+  {id:'vegi',  label:{ko:'채식 락토오보 (고기·생선 ✕, 계란·유제품 ○)',en:'Vegetarian (no meat/fish; egg/dairy OK)',ja:'ベジタリアン（肉・魚✕、卵乳○）',zh:'蛋奶素（禁肉/鱼）',ar:'نباتي (بيض/ألبان مسموح)'}},
+  {id:'pesco', label:{ko:'페스코 (육류 ✕, 해산물 ○)',en:'Pescatarian (no meat; seafood OK)',ja:'ペスコ（肉✕、魚介○）',zh:'鱼素（禁肉，海鲜可）',ar:'بيسكاتاري (بلا لحم، مأكولات بحرية مسموحة)'}},
+];
+const lbl = item => item.label[uiLang] || item.label.en;
+
+/* ===== nations ===== */
+const DISHES_GLOBAL = [
+  {name:{ko:'비빔밥',en:'Bibimbap'}, tags:['egg','beef','soy','pungent'], sodium:'mid', sugar:'mid', adjustable:['egg']},
+  {name:{ko:'한국식 치킨',en:'Korean fried chicken'}, tags:['chicken','wheat'], sodium:'high', sugar:'high', fat:'high'},
+  {name:{ko:'불고기',en:'Bulgogi'}, tags:['beef','soy','pungent'], sodium:'mid', sugar:'high', fat:'high'},
+];
+const NATIONS = [
+  {id:'kr', flag:'🇰🇷', label:{ko:'한국',en:'Korea',ja:'韓国',zh:'韩国',ar:'كوريا'}, lang:'ko'},
+  {id:'jp', flag:'🇯🇵', label:{ko:'일본',en:'Japan',ja:'日本',zh:'日本',ar:'اليابان'}, lang:'ja',
+    dishes:[
+      {name:{ko:'삼겹살',en:'Samgyeopsal'}, tags:['pork'], sodium:'mid', sugar:'low', fat:'high'},
+      {name:{ko:'치즈닭갈비',en:'Cheese dak-galbi'}, tags:['chicken','milk','pungent'], sodium:'high', sugar:'high', fat:'high', spicy:'high'},
+      {name:{ko:'김밥',en:'Gimbap'}, tags:['egg','fish','soy'], sodium:'mid', sugar:'low', adjustable:['egg']},
+    ]},
+  {id:'cn', flag:'🇨🇳', label:{ko:'중국',en:'China',ja:'中国',zh:'中国',ar:'الصين'}, lang:'zh',
+    dishes:[
+      {name:{ko:'삼계탕',en:'Samgye-tang'}, tags:['chicken','pungent'], sodium:'mid', sugar:'low', purine:'high'},
+      {name:{ko:'불고기',en:'Bulgogi'}, tags:['beef','soy','pungent'], sodium:'mid', sugar:'high', fat:'high'},
+      {name:{ko:'해물찜',en:'Braised seafood'}, tags:['shellfish','mollusk','pungent'], sodium:'high', sugar:'mid', purine:'high', spicy:'high'},
+    ]},
+  {id:'tw', flag:'🇹🇼', label:{ko:'대만',en:'Taiwan',ja:'台湾',zh:'台湾',ar:'تايوان'}, lang:'zh'},
+  {id:'us', flag:'🇺🇸', label:{ko:'미국',en:'USA',ja:'アメリカ',zh:'美国',ar:'أمريكا'}, lang:'en',
+    dishes:[
+      {name:{ko:'한국식 치킨',en:'Korean fried chicken'}, tags:['chicken','wheat'], sodium:'high', sugar:'high', fat:'high'},
+      {name:{ko:'비빔밥',en:'Bibimbap'}, tags:['egg','beef','soy','pungent'], sodium:'mid', sugar:'mid', adjustable:['egg']},
+      {name:{ko:'김치찌개',en:'Kimchi stew'}, tags:['pork','pungent'], sodium:'high', sugar:'low', spicy:'high', fat:'high'},
+    ]},
+  {id:'gb', flag:'🇬🇧', label:{ko:'영국',en:'UK',ja:'イギリス',zh:'英国',ar:'بريطانيا'}, lang:'en'},
+  {id:'fr', flag:'🇫🇷', label:{ko:'프랑스',en:'France',ja:'フランス',zh:'法国',ar:'فرنسا'}, lang:'en'},
+  {id:'th', flag:'🇹🇭', label:{ko:'태국',en:'Thailand',ja:'タイ',zh:'泰国',ar:'تايلاند'}, lang:'en'},
+  {id:'id', flag:'🇮🇩', label:{ko:'인도네시아',en:'Indonesia',ja:'インドネシア',zh:'印尼',ar:'إندونيسيا'}, lang:'en', suggest:'halal',
+    dishes:[
+      {name:{ko:'닭갈비',en:'Dak-galbi'}, tags:['chicken','pungent'], sodium:'mid', sugar:'high', spicy:'high'},
+      {name:{ko:'비빔밥',en:'Bibimbap'}, tags:['egg','beef','soy','pungent'], sodium:'mid', sugar:'mid', adjustable:['egg']},
+      {name:{ko:'떡볶이',en:'Tteokbokki'}, tags:['wheat','fish','soy','pungent'], sodium:'high', sugar:'high', spicy:'high'},
+    ]},
+  {id:'in', flag:'🇮🇳', label:{ko:'인도',en:'India',ja:'インド',zh:'印度',ar:'الهند'}, lang:'en', suggest:'vegi',
+    dishes:[
+      {name:{ko:'산채정식',en:'Wild-greens set'}, tags:[], sodium:'low', sugar:'low', vegiOk:true, veganOk:true},
+      {name:{ko:'비빔밥',en:'Bibimbap'}, tags:['egg','beef','soy','pungent'], sodium:'mid', sugar:'mid', adjustable:['egg']},
+      {name:{ko:'파전',en:'Scallion pancake'}, tags:['wheat','egg','pungent'], sodium:'mid', sugar:'low'},
+    ]},
+  {id:'sa', flag:'🇸🇦', label:{ko:'사우디아라비아',en:'Saudi Arabia',ja:'サウジアラビア',zh:'沙特',ar:'السعودية'}, lang:'ar', suggest:'halal',
+    dishes:[
+      {name:{ko:'갈비찜',en:'Braised short ribs'}, tags:['beef','soy','pungent'], sodium:'mid', sugar:'high', fat:'high'},
+      {name:{ko:'삼계탕',en:'Samgye-tang'}, tags:['chicken','pungent'], sodium:'mid', sugar:'low', purine:'high'},
+      {name:{ko:'잡채',en:'Japchae'}, tags:['beef','soy','pungent'], sodium:'mid', sugar:'high', fat:'high'},
+    ]},
+  {id:'ae', flag:'🇦🇪', label:{ko:'아랍에미리트',en:'UAE',ja:'UAE',zh:'阿联酋',ar:'الإمارات'}, lang:'ar', suggest:'halal'},
+];
+
+/* ===== welcome copy per language ===== */
+const WELCOME = {
+  ko:{title:'한국에 오신 것을<br>환영합니다 🇰🇷', sub:'먼 길 오시느라 고생 많으셨어요.<br>이곳에서의 모든 순간이, 그리고 모든 한 끼가<br>당신에게 따뜻한 기억으로 남기를 바라요.', q:'어느 나라에서 오셨나요?', note:'선택한 국가의 언어로 안내해 드려요. 지원하지 않는 언어는 영어로 제공돼요.', cont:'계속하기'},
+  en:{title:'Welcome to Korea 🇰🇷', sub:'You\u2019ve come a long way — we\u2019re truly glad you\u2019re here.<br>May every moment, and every single meal,<br>become a warm memory of your journey.', q:'Where are you visiting from?', note:'We\u2019ll guide you in your language. If yours isn\u2019t supported yet, we\u2019ll use English.', cont:'Continue'},
+  ja:{title:'ようこそ、韓国へ 🇰🇷', sub:'遠いところ、ようこそお越しくださいました。<br>ここで過ごすすべての時間と、すべての食事が<br>あたたかい思い出になりますように。', q:'どちらの国からお越しですか？', note:'選択した国の言語でご案内します。未対応の言語は英語となります。', cont:'続ける'},
+  zh:{title:'欢迎来到韩国 🇰🇷', sub:'远道而来，辛苦了。真诚地欢迎您！<br>愿您在这里的每一刻、每一餐，<br>都成为旅途中温暖的回忆。', q:'请问您来自哪个国家？', note:'我们将以您的语言为您服务。暂不支持的语言将以英语提供。', cont:'继续'},
+  ar:{title:'أهلاً بكم في كوريا 🇰🇷', sub:'لقد قطعتم طريقاً طويلاً — يسعدنا وجودكم هنا حقاً.<br>نتمنى أن تكون كل لحظة وكل وجبة<br>ذكرى دافئة من رحلتكم.', q:'من أي دولة قادمون؟', note:'سنرشدك بلغتك. إن لم تكن مدعومة بعد فسنستخدم الإنجليزية.', cont:'متابعة'},
+};
+
+/* ===== areas & restaurants (names via TourAPI multilingual in production) ===== */
+const AREAS = {
+  myeongdong: {
+    name:{ko:'서울 명동',en:'Myeongdong, Seoul',ja:'ソウル明洞',zh:'首尔明洞',ar:'ميونغدونغ، سيول'},
+    restaurants:[
+      {id:'r1', name:'명동손칼국수', cat:{ko:'한식 · 면류',en:'Korean · Noodles'}, dist:{ko:'도보 3분',en:'3 min walk'},
+        menus:[
+          {name:{ko:'사골 칼국수',en:'Beef-bone kalguksu'}, price:'₩11,000', tags:['wheat','beef','pungent'], sodium:'high', sugar:'low', purine:'high', cross:['egg']},
+          {name:{ko:'메밀 물냉면',en:'Buckwheat naengmyeon'}, price:'₩12,000', tags:['buckwheat','beef','egg'], sodium:'mid', sugar:'low', adjustable:['egg']},
+          {name:{ko:'왕만두 (고기)',en:'King dumplings (meat)'}, price:'₩9,000', tags:['wheat','pork','pungent'], sodium:'mid', sugar:'low', fat:'high'},
+          {name:{ko:'콩국수',en:'Cold soy-milk noodles'}, price:'₩12,000', tags:['wheat','soy'], sodium:'low', sugar:'low', cross:['peanut'], vegiOk:true},
+        ]},
+      {id:'r2', name:'남산돌솥밥', cat:{ko:'한식 · 정식',en:'Korean · Set meals'}, dist:{ko:'도보 6분',en:'6 min walk'},
+        menus:[
+          {name:{ko:'영양 돌솥밥 정식',en:'Nutritious hot-pot rice set (nuts)'}, price:'₩15,000', tags:['nut'], sodium:'mid', sugar:'low'},
+          {name:{ko:'버섯 돌솥밥',en:'Mushroom hot-pot rice'}, price:'₩14,000', tags:[], sodium:'low', sugar:'low', vegiOk:true, veganOk:true},
+          {name:{ko:'불고기 돌솥밥',en:'Bulgogi hot-pot rice'}, price:'₩17,000', tags:['beef','soy','pungent'], sodium:'mid', sugar:'high', fat:'high'},
+        ]},
+      {id:'r3', name:'명동해물포차', cat:{ko:'한식 · 해산물',en:'Korean · Seafood'}, dist:{ko:'도보 4분',en:'4 min walk'},
+        menus:[
+          {name:{ko:'해물파전',en:'Seafood scallion pancake'}, price:'₩18,000', tags:['shellfish','mollusk','wheat','egg','pungent'], sodium:'mid', sugar:'low'},
+          {name:{ko:'새우장 정식',en:'Soy-marinated shrimp set'}, price:'₩16,000', tags:['shellfish','soy'], sodium:'high', sugar:'mid', purine:'high'},
+          {name:{ko:'매운 낙지볶음',en:'Spicy stir-fried octopus'}, price:'₩17,000', tags:['mollusk','pungent'], sodium:'high', sugar:'high', purine:'high', spicy:'high'},
+        ]},
+      {id:'r4', name:'서울그린테이블', cat:{ko:'채식 · 샐러드',en:'Vegetarian · Salads'}, dist:{ko:'도보 8분',en:'8 min walk'},
+        menus:[
+          {name:{ko:'두부 포케볼',en:'Tofu poke bowl'}, price:'₩13,500', tags:['soy'], sodium:'low', sugar:'low', vegiOk:true, veganOk:true},
+          {name:{ko:'곡물 샐러드 (땅콩드레싱)',en:'Grain salad (peanut dressing)'}, price:'₩12,000', tags:['peanut','soy'], sodium:'low', sugar:'mid', vegiOk:true, veganOk:true},
+          {name:{ko:'리코타 치즈 샐러드',en:'Ricotta cheese salad'}, price:'₩13,000', tags:['milk'], sodium:'low', sugar:'mid', vegiOk:true},
+        ]},
+      {id:'r5', name:'할랄가든 명동점', cat:{ko:'할랄인증 · 아시안',en:'Halal-certified · Asian'}, dist:{ko:'도보 5분',en:'5 min walk'}, halalCert:true,
+        menus:[
+          {name:{ko:'치킨 비리야니',en:'Chicken biryani'}, price:'₩15,000', tags:['chicken','pungent'], sodium:'mid', sugar:'low', halalOk:true},
+          {name:{ko:'양고기 커리 & 난',en:'Lamb curry & naan'}, price:'₩17,000', tags:['meat','wheat','milk','pungent'], sodium:'mid', sugar:'mid', halalOk:true},
+          {name:{ko:'야채 커리 (비건)',en:'Vegetable curry (vegan)'}, price:'₩13,000', tags:['pungent'], sodium:'mid', sugar:'low', halalOk:true, vegiOk:true, veganOk:true},
+        ]},
+    ]
+  },
+  jeonju: {
+    name:{ko:'전주 한옥마을',en:'Jeonju Hanok Village',ja:'全州韓屋村',zh:'全州韩屋村',ar:'قرية هانوك جونجو'},
+    restaurants:[
+      {id:'j1', name:'한옥마을 비빔밥집', cat:{ko:'한식 · 전주비빔밥',en:'Korean · Jeonju bibimbap'}, dist:{ko:'도보 2분',en:'2 min walk'},
+        menus:[
+          {name:{ko:'전주비빔밥',en:'Jeonju bibimbap'}, price:'₩13,000', tags:['egg','beef','soy','pungent'], sodium:'mid', sugar:'mid'},
+          {name:{ko:'산채비빔밥',en:'Wild-greens bibimbap (egg removable)'}, price:'₩12,000', tags:['egg','soy'], sodium:'low', sugar:'low', vegiOk:true, adjustable:['egg']},
+          {name:{ko:'육회비빔밥',en:'Beef tartare bibimbap'}, price:'₩16,000', tags:['egg','beef','pungent'], sodium:'mid', sugar:'mid'},
+        ]},
+      {id:'j2', name:'풍남문 콩나물국밥', cat:{ko:'한식 · 국밥',en:'Korean · Rice soup'}, dist:{ko:'도보 5분',en:'5 min walk'},
+        menus:[
+          {name:{ko:'콩나물국밥',en:'Bean-sprout rice soup (egg removable)'}, price:'₩9,000', tags:['egg','soy','pungent'], sodium:'high', sugar:'low', adjustable:['egg']},
+          {name:{ko:'오징어 콩나물국밥',en:'Squid bean-sprout rice soup'}, price:'₩11,000', tags:['mollusk','egg','soy','pungent'], sodium:'high', sugar:'low', purine:'high'},
+        ]},
+      {id:'j3', name:'한지카페 다과상', cat:{ko:'카페 · 전통디저트',en:'Cafe · Traditional desserts'}, dist:{ko:'도보 3분',en:'3 min walk'},
+        menus:[
+          {name:{ko:'수제 약과 세트',en:'Handmade yakgwa set'}, price:'₩8,000', tags:['wheat'], sodium:'low', sugar:'high', vegiOk:true},
+          {name:{ko:'오미자차',en:'Omija tea'}, price:'₩6,500', tags:[], sodium:'low', sugar:'mid', vegiOk:true, veganOk:true, halalOk:true},
+          {name:{ko:'인절미 토스트',en:'Injeolmi toast'}, price:'₩9,000', tags:['wheat','milk','soy'], sodium:'low', sugar:'high', cross:['peanut'], vegiOk:true},
+        ]},
+    ]
+  }
+};
+const loc = obj => obj[uiLang] || obj.en || obj.ko;
+
+/* ================= state ================= */
+let profile = {cond:[], alg:[], rel:[], nation:null};
+let uiLang = 'en';
+let areaKey = 'myeongdong';
+let currentLang = 'en';
+
+/* ================= verdict engine ================= */
+const LAND = ['pork','beef','chicken','meat'];
+const SEA = ['fish','shellfish','mollusk'];
+function judgeMenu(m){
+  const s = t(); const reasons = []; let level = 'g';
+  const bump = l => { if(l==='r') level='r'; else if(l==='y' && level!=='r') level='y'; };
+  const has = x => m.tags.includes(x);
+  const hasAny = arr => arr.some(has);
+
+  /* allergens: profile ids == ingredient tag ids */
+  profile.alg.forEach(a=>{
+    if(has(a)){
+      if(m.adjustable && m.adjustable.includes(a)){ bump('y'); reasons.push({level:'y', text:s.r_adjust(tl(a))}); }
+      else { bump('r'); reasons.push({level:'r', text:s.r_contain(tl(a))}); }
+    } else if(m.cross && m.cross.includes(a)){ bump('y'); reasons.push({level:'y', text:s.r_cross(tl(a))}); }
+  });
+
+  /* halal: pork/alcohol out; other meat needs slaughter check */
+  if(profile.rel.includes('halal')){
+    if(has('pork') || has('alcohol')){ bump('r'); reasons.push({level:'r', text:s.r_pork}); }
+    else if(m.halalOk){ reasons.push({level:'g', text:s.r_halalOk}); }
+    else if(hasAny(LAND)){ bump('y'); reasons.push({level:'y', text:s.r_halalCheck}); }
+  }
+  /* kosher: pork/shellfish/mollusk out; meat+dairy mix out; meat needs kosher check */
+  if(profile.rel.includes('kosher')){
+    if(has('pork') || has('shellfish') || has('mollusk')){ bump('r'); reasons.push({level:'r', text:s.r_koNo}); }
+    else if(hasAny(LAND) && has('milk')){ bump('r'); reasons.push({level:'r', text:s.r_koMix}); }
+    else if(hasAny(LAND)){ bump('y'); reasons.push({level:'y', text:s.r_koCheck}); }
+  }
+  /* hindu: beef out; generic meat needs species check */
+  if(profile.rel.includes('hindu')){
+    if(has('beef')){ bump('r'); reasons.push({level:'r', text:s.r_hindu}); }
+    else if(has('meat')){ bump('y'); reasons.push({level:'y', text:s.r_hinduCheck}); }
+  }
+  /* buddhist temple diet: no flesh, no pungent vegetables */
+  if(profile.rel.includes('buddhist')){
+    if(hasAny(LAND) || hasAny(SEA)){ bump('r'); reasons.push({level:'r', text:s.r_flesh}); }
+    else if(has('pungent')){ bump('r'); reasons.push({level:'r', text:s.r_pungent}); }
+    else if(m.veganOk){ reasons.push({level:'g', text:s.r_vegiOk}); }
+    else { bump('y'); reasons.push({level:'y', text:s.r_pungentCheck}); }
+  }
+  /* vegan: no flesh, no egg/dairy */
+  if(profile.rel.includes('vegan')){
+    if(hasAny(LAND) || hasAny(SEA)){ bump('r'); reasons.push({level:'r', text:s.r_flesh}); }
+    else if(has('egg') || has('milk')){ bump('r'); reasons.push({level:'r', text:s.r_veganNo}); }
+    else if(m.veganOk){ reasons.push({level:'g', text:s.r_veganOk}); }
+    else { bump('y'); reasons.push({level:'y', text:s.r_vegiCheck}); }
+  }
+  /* lacto-ovo vegetarian */
+  if(profile.rel.includes('vegi')){
+    if(hasAny(LAND) || hasAny(SEA)){ bump('r'); reasons.push({level:'r', text:s.r_flesh}); }
+    else if(m.vegiOk || m.veganOk){ reasons.push({level:'g', text:s.r_vegiOk}); }
+    else { bump('y'); reasons.push({level:'y', text:s.r_vegiCheck}); }
+  }
+  /* pescatarian: land meat out, seafood fine */
+  if(profile.rel.includes('pesco')){
+    if(hasAny(LAND)){ bump('r'); reasons.push({level:'r', text:s.r_pescoNo}); }
+    else if(!hasAny(SEA) && !m.vegiOk && !m.veganOk){ bump('y'); reasons.push({level:'y', text:s.r_vegiCheck}); }
+  }
+
+  if(profile.cond.includes('sodium')){
+    if(m.sodium==='high'){ bump('y'); reasons.push({level:'y', text:s.r_naHigh}); }
+    else if(m.sodium==='low'){ reasons.push({level:'g', text:s.r_naLow}); }
+  }
+  if(profile.cond.includes('sugar')){
+    if(m.sugar==='high'){ bump('y'); reasons.push({level:'y', text:s.r_suHigh}); }
+    else if(m.sugar==='low'){ reasons.push({level:'g', text:s.r_suLow}); }
+  }
+  if(profile.cond.includes('gout') && m.purine==='high'){ bump('y'); reasons.push({level:'y', text:s.r_purine}); }
+  if(profile.cond.includes('lipid') && m.fat==='high'){ bump('y'); reasons.push({level:'y', text:s.r_fat}); }
+  if(profile.cond.includes('gerd') && m.spicy==='high'){ bump('y'); reasons.push({level:'y', text:s.r_spicy}); }
+  if(profile.cond.includes('gluten')){
+    if(has('wheat')){ bump('r'); reasons.push({level:'r', text:s.r_glu}); }
+    else if(has('soy')){ bump('y'); reasons.push({level:'y', text:s.r_gluSoy}); }
+  }
+  if(reasons.length===0) reasons.push({level:'g', text:s.r_none});
+  return {level, reasons};
+}
+function judgeRestaurant(r){
+  const s = t();
+  const vs = r.menus.map(judgeMenu);
+  const safe = vs.filter(v=>v.level==='g').length;
+  const cond = vs.filter(v=>v.level==='y').length;
+  if(safe>0) return {level:'g', text:s.vSafe(safe,cond)};
+  if(cond>0) return {level:'y', text:s.vCond(cond)};
+  return {level:'r', text:s.vNone};
+}
+
+/* ================= welcome / onboarding ================= */
+let pendingNation = null;
+function renderWelcome(){
+  const w = WELCOME[uiLang] || WELCOME.en;
+  document.getElementById('w-title').innerHTML = w.title;
+  document.getElementById('w-sub').innerHTML = w.sub;
+  document.getElementById('w-q').textContent = w.q;
+  document.getElementById('w-note').textContent = w.note;
+  document.getElementById('w-continue').textContent = w.cont;
+  document.getElementById('nation-grid').innerHTML = NATIONS.map(n=>
+    `<button class="nation-btn ${pendingNation===n.id?'on':''}" onclick="pickNation('${n.id}')">
+      <span class="f">${n.flag}</span><span class="n">${n.label[uiLang]||n.label.en}</span>
+    </button>`).join('');
+  const g = document.getElementById('w-greet');
+  if(pendingNation){ g.textContent = t().welcomeGreet; g.classList.add('show'); }
+  else g.classList.remove('show');
+  document.getElementById('w-continue').disabled = !pendingNation;
+}
+function pickNation(id){
+  pendingNation = id;
+  const n = NATIONS.find(x=>x.id===id);
+  uiLang = n.lang; currentLang = (n.lang==='ko')?'en':n.lang;
+  applyDir();
+  renderWelcome();
+}
+function goStep2(){
+  profile.nation = pendingNation;
+  document.getElementById('step-welcome').classList.remove('active');
+  document.getElementById('step-profile').classList.add('active');
+  renderStatic(); refresh();
+  document.getElementById('cover').scrollTop = 0;
+}
+function finishOnboarding(){
+  document.getElementById('cover').style.display='none';
+  renderStatic(); refresh();
+}
+function applyDir(){
+  document.getElementById('phone').dir = (uiLang==='ar') ? 'rtl' : 'ltr';
+}
+
+/* ================= static UI text ================= */
+function renderStatic(){
+  const s = t();
+  document.getElementById('ob-title').textContent = s.obTitle;
+  document.getElementById('ob-sub').textContent = s.obSub;
+  document.getElementById('ob-cond-t').textContent = s.condT;
+  document.getElementById('ob-cond-d').textContent = s.condD;
+  document.getElementById('ob-alg-t').textContent = s.algT;
+  document.getElementById('ob-alg-d').textContent = s.algD;
+  document.getElementById('ob-rel-t').textContent = s.relT;
+  document.getElementById('ob-rel-d').textContent = s.relD;
+  document.getElementById('ob-start').textContent = s.start;
+  document.getElementById('legend').innerHTML =
+    `<div><span class="dot g"></span>${s.legend[0]}</div><div><span class="dot y"></span>${s.legend[1]}</div><div><span class="dot r"></span>${s.legend[2]}</div>`;
+  document.getElementById('explore-note').innerHTML = s.exploreNote;
+  document.getElementById('pf-title').textContent = s.pfTitle;
+  document.getElementById('pf-sub').textContent = s.pfSub;
+  document.getElementById('pf-nat-t').innerHTML = `${s.natT} <span>${s.optional}</span>`;
+  document.getElementById('pf-nat-d').textContent = s.natD;
+  document.getElementById('pf-cond-t').textContent = s.condT;
+  document.getElementById('pf-cond-d').textContent = s.condD;
+  document.getElementById('pf-alg-t').textContent = s.algT;
+  document.getElementById('pf-alg-d').textContent = s.algD;
+  document.getElementById('pf-rel-t').textContent = s.relT;
+  document.getElementById('pf-rel-d').textContent = s.relD;
+  document.getElementById('nav-explore-l').textContent = s.nav[0];
+  document.getElementById('nav-card-l').textContent = s.nav[1];
+  document.getElementById('nav-profile-l').textContent = s.nav[2];
+}
+
+/* ================= render ================= */
+function hasProfile(){ return profile.cond.length+profile.alg.length+profile.rel.length>0; }
+const PLATE_ICON = {g:'✓', y:'!', r:'✕'};
+
+function renderProfileStrip(){
+  const s = t();
+  const nat = NATIONS.find(n=>n.id===profile.nation);
+  const tags = [
+    ...(nat?[nat.flag+' '+(nat.label[uiLang]||nat.label.en)]:[]),
+    ...profile.cond.map(i=>lbl(CONDITIONS.find(x=>x.id===i)).split(' (')[0].split('（')[0]),
+    ...profile.alg.map(i=>lbl(ALLERGENS.find(x=>x.id===i))),
+    ...profile.rel.map(i=>lbl(RELIGIOUS.find(x=>x.id===i)).split(' (')[0].split('（')[0]),
+  ];
+  document.getElementById('profile-strip').innerHTML = tags.length
+    ? tags.map(x=>`<span class="ptag">${x}</span>`).join('')
+    : `<span class="ptag empty">${s.empty}</span>`;
+}
+
+function renderExplore(){
+  const s = t(); const area = AREAS[areaKey];
+  document.getElementById('area-name').textContent = loc(area.name);
+  document.getElementById('rest-count-label').textContent = s.restCount(loc(area.name), area.restaurants.length);
+  document.getElementById('rest-list').innerHTML = area.restaurants.map(r=>{
+    const v = judgeRestaurant(r);
+    return `<div class="rest-card" onclick="openDetail('${r.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openDetail('${r.id}')">
+      <div class="plate ${v.level}">${PLATE_ICON[v.level]}</div>
+      <div class="rest-info">
+        <div class="rest-name">${r.name}${r.halalCert?` <span class="halal-badge">HALAL</span>`:''}</div>
+        <div class="rest-cat">${loc(r.cat)} · ${loc(r.dist)}</div>
+        <div class="rest-verdict ${v.level}">${v.text}</div>
+        <div class="rest-meta">${s.srcTour}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function menuTitle(m){
+  const ko = m.name.ko;
+  if(uiLang==='ko') return `<div class="menu-name">${ko}</div>`;
+  return `<div class="menu-name">${ko}<small>${m.name.en}</small></div>`;
+}
+
+function openDetail(id){
+  const s = t();
+  const r = AREAS[areaKey].restaurants.find(x=>x.id===id);
+  const v = judgeRestaurant(r);
+  document.getElementById('scr-detail').innerHTML = `
+    <div class="detail-hero">
+      <button class="back-btn" onclick="go('explore')">${s.back}</button>
+      <div class="detail-name">${r.name}</div>
+      <div class="detail-sub">${loc(r.cat)} · ${s.detailSub(loc(AREAS[areaKey].name))}</div>
+      <span class="detail-badge ${v.level}">${PLATE_ICON[v.level]} ${v.text}</span>
+    </div>
+    <div class="menu-list">
+      ${r.menus.map(m=>{
+        const mv = judgeMenu(m);
+        return `<div class="menu-item">
+          <div class="menu-top">
+            <div>${menuTitle(m)}<div class="menu-price">${m.price}</div></div>
+            <span class="mbadge ${mv.level}">${s.badge[mv.level]}</span>
+          </div>
+          <div class="menu-reasons">
+            ${mv.reasons.map(rs=>`<div class="reason ${rs.level}">·&nbsp;<span>${rs.text}</span></div>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="source-note">${s.detailNote}</div>`;
+  go('detail');
+}
+
+/* ================= reco ================= */
+function renderReco(){
+  const s = t(); const box = document.getElementById('reco-section');
+  const nat = NATIONS.find(n=>n.id===profile.nation);
+  if(!nat || nat.id==='kr'){ box.innerHTML=''; return; }
+  const dishes = nat.dishes || DISHES_GLOBAL;
+  box.innerHTML = `
+    <div class="section-label">${s.recoTitle(nat.flag, nat.label[uiLang]||nat.label.en)}</div>
+    <div class="reco-scroll">
+      ${dishes.map((d,i)=>{
+        const v = judgeMenu(d);
+        const firstReason = v.reasons[0] ? v.reasons[0].text.replace(/<[^>]+>/g,'') : '';
+        return `<div class="reco-card">
+          <div class="reco-rank">${s.recoRank(i+1)}</div>
+          <div class="reco-name">${d.name.ko}${uiLang!=='ko'?`<small>${d.name.en}</small>`:''}</div>
+          <span class="reco-badge ${v.level}">${s.badge[v.level]}</span>
+          <div class="reco-note">${firstReason}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="reco-src">${s.recoSrc}</div>`;
+}
+
+/* ================= safecard / dietary ID ================= */
+const LANGS = {en:'English', zh:'中文', ja:'日本語', ar:'العربية'};
+const PROF_HINT = {
+  ko:'식당에서 사장님께 이 카드를 보여주세요. 재료 확인이 훨씬 쉬워져요.',
+  en:'Show this card to the restaurant owner — it makes checking ingredients so much easier.',
+  ja:'お店でこのカードを見せてください。食材の確認がずっと簡単になります。',
+  zh:'在餐厅向老板出示此卡，确认食材会容易得多。',
+  ar:'أظهر هذه البطاقة لصاحب المطعم — سيسهّل ذلك التحقق من المكونات كثيراً.',
+};
+function koRestrictions(){
+  const no = [], caution = [];
+  profile.alg.forEach(a=>no.push(ALLERGENS.find(x=>x.id===a).label.ko.split('(')[0].trim()));
+  if(profile.rel.includes('halal')){ no.push('돼지고기','술(요리술 포함)'); }
+  if(profile.rel.includes('kosher')){ no.push('돼지고기','새우·게·조개'); caution.push('고기+유제품 함께 ✕'); }
+  if(profile.rel.includes('hindu')){ no.push('쇠고기'); }
+  if(profile.rel.includes('buddhist')){ no.push('고기','생선','마늘·파(오신채)'); }
+  if(profile.rel.includes('vegan')){ no.push('고기','생선','계란','우유·유제품'); }
+  if(profile.rel.includes('vegi')){ no.push('고기','생선','고기 육수'); }
+  if(profile.rel.includes('pesco')){ no.push('고기(생선은 괜찮아요)'); }
+  if(profile.cond.includes('sodium')) caution.push('짠 음식 · 국물 (나트륨)');
+  if(profile.cond.includes('sugar')) caution.push('단 음식 (당류)');
+  if(profile.cond.includes('gout')) caution.push('내장 · 진한 육수 · 해산물 (퓨린)');
+  if(profile.cond.includes('lipid')) caution.push('기름진 음식 · 튀김');
+  if(profile.cond.includes('gerd')) caution.push('맵고 자극적인 음식');
+  if(profile.cond.includes('gluten')) no.push('밀가루(글루텐)');
+  return {no:[...new Set(no)], caution};
+}
+function cardNo(){
+  const seed = [profile.nation||'', ...profile.alg, ...profile.rel, ...profile.cond].join('');
+  let h = 7; for(const c of seed) h = (h*31 + c.charCodeAt(0)) % 9973;
+  return 'SP-2026-' + String(1000 + (h % 9000));
+}
+function qrSVG(){
+  const seed = cardNo(); let h = 3;
+  const rnd = ()=>{ h = (h*1103515245 + 12345) % 2147483647; return h % 100 < 46; };
+  for(const c of seed) h = (h*31 + c.charCodeAt(0)) % 2147483647;
+  const n=13, cell=3; let rects='';
+  const finder=(x,y)=>`<rect x="${x*cell}" y="${y*cell}" width="${cell*3}" height="${cell*3}" fill="#123B32"/><rect x="${(x+1)*cell}" y="${(y+1)*cell}" width="${cell}" height="${cell}" fill="#F3F8F5"/>`;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    if((r<3&&c<3)||(r<3&&c>n-4)||(r>n-4&&c<3)) continue;
+    if(rnd()) rects+=`<rect x="${c*cell}" y="${r*cell}" width="${cell}" height="${cell}" fill="#123B32"/>`;
+  }
+  return `<svg class="id-qr" width="46" height="46" viewBox="0 0 ${n*cell} ${n*cell}" aria-hidden="true">${rects}${finder(0,0)}${finder(n-3,0)}${finder(0,n-3)}</svg>`;
+}
+function idCardHTML(){
+  const nat = NATIONS.find(n=>n.id===profile.nation);
+  const {no, caution} = koRestrictions();
+  const today = new Date();
+  const issued = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
+  return `
+  <div class="idcard">
+    <div class="id-head">
+      <div>
+        <div class="id-title">식이 제약 안내 카드</div>
+        <div class="id-title-en">DIETARY CARE CARD · SAFEPLATE KOREA</div>
+      </div>
+      <div class="id-emblem">SP</div>
+    </div>
+    <div class="id-body">
+      <div class="id-photo">
+        <span class="flag">${nat?nat.flag:'🌏'}</span>
+        <span class="cc">${nat?nat.id.toUpperCase():'INTL'}</span>
+      </div>
+      <div class="id-fields">
+        <div class="id-field">
+          <label>국적 / NATIONALITY</label>
+          <div class="val">${nat?(nat.label.ko + ' · ' + nat.label.en):'—'}</div>
+        </div>
+        <div class="id-field">
+          <label>먹을 수 없어요 / CANNOT EAT</label>
+          ${no.length?`<div class="id-noeat">${no.map(x=>`<span>✕ ${x}</span>`).join('')}</div>`:`<div class="val" style="opacity:.7">—</div>`}
+        </div>
+        ${caution.length?`<div class="id-field">
+          <label>주의가 필요해요 / PLEASE BE CAREFUL</label>
+          <div class="id-caution">${caution.map(x=>`<span>! ${x}</span>`).join('')}</div>
+        </div>`:''}
+      </div>
+    </div>
+    <div class="id-msg">사장님, 위 재료가 들어가는지 확인 부탁드립니다. 감사합니다 🙏</div>
+    <div class="id-foot">
+      <div class="meta">NO. ${cardNo()}<br>ISSUED ${issued} · VALID WITH TRAVELER</div>
+      ${qrSVG()}
+    </div>
+  </div>`;
+}
+function renderCard(){
+  const s = t(); const body = document.getElementById('card-body');
+  if(!hasProfile()){
+    body.innerHTML = `<div class="empty-note">${s.cardEmpty}<br><button class="cta" style="max-width:230px" onclick="go('profile')">${s.cardRegister}</button></div>`;
+    return;
+  }
+  const sub = STR[currentLang] || STR.en;
+  body.innerHTML = `
+    <div class="card-intro">${s.cardIntro}</div>
+    ${idCardHTML()}
+    <div class="lang-row">
+      ${Object.entries(LANGS).map(([k,v])=>`<button class="lang-btn ${k===currentLang?'on':''}" onclick="setLang('${k}')">${v}</button>`).join('')}
+    </div>
+    <div class="card-intro" dir="auto" style="margin-top:4px">${sub.cardSub} ${sub.cardQ}</div>
+    <div class="card-hint">${s.cardHint}</div>`;
+}
+function setLang(l){ currentLang=l; renderCard(); }
+function renderProfileCard(){
+  const slot = document.getElementById('pf-card-slot');
+  if(!hasProfile()){ slot.innerHTML=''; return; }
+  slot.innerHTML = idCardHTML() + `<div class="pf-card-hint">💳 ${PROF_HINT[uiLang]||PROF_HINT.en}</div>`;
+}
+
+/* ================= chips ================= */
+function renderChips(containerId, items, group){
+  const el = document.getElementById(containerId);
+  el.innerHTML = items.map(it=>{
+    const on = profile[group].includes(it.id);
+    return `<button class="chip ${on?'on':''}" onclick="toggleChip('${group}','${it.id}')">${lbl(it)}</button>`;
+  }).join('');
+}
+function renderNationChips(){
+  const el = document.getElementById('pf-nat');
+  el.innerHTML = NATIONS.map(n=>{
+    const on = profile.nation===n.id;
+    return `<button class="chip ${on?'on':''}" onclick="setNationInApp('${n.id}')">${n.flag} ${n.label[uiLang]||n.label.en}</button>`;
+  }).join('');
+}
+function renderNationHints(){
+  const s = t();
+  const nat = NATIONS.find(n=>n.id===profile.nation);
+  ['pf-nat-hint','ob-nat-hint'].forEach(id=>{
+    const h = document.getElementById(id);
+    if(nat && nat.suggest){ h.textContent = '💡 ' + (nat.suggest==='halal'?s.suggestHalal:s.suggestVegi); h.classList.add('show'); }
+    else h.classList.remove('show');
+  });
+}
+function setNationInApp(id){
+  profile.nation = (profile.nation===id)? null : id;
+  const n = NATIONS.find(x=>x.id===profile.nation);
+  if(n){ uiLang = n.lang; currentLang = (n.lang==='ko')?'en':n.lang; }
+  applyDir(); renderStatic(); refresh();
+}
+function toggleChip(group,id){
+  const i = profile[group].indexOf(id);
+  if(i>=0) profile[group].splice(i,1); else profile[group].push(id);
+  refresh();
+}
+
+/* ================= navigation ================= */
+function go(name){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  document.getElementById('scr-'+name).classList.add('active');
+  ['explore','card','profile'].forEach(n=>{
+    document.getElementById('nav-'+n).classList.toggle('on', n===name || (name==='detail'&&n==='explore'));
+  });
+  if(name==='card') renderCard();
+  document.querySelector('main').scrollTop = 0;
+}
+function toggleArea(){ areaKey = areaKey==='myeongdong' ? 'jeonju' : 'myeongdong'; refresh(); go('explore'); }
+
+function refresh(){
+  renderChips('pf-cond', CONDITIONS, 'cond');
+  renderChips('pf-alg', ALLERGENS, 'alg');
+  renderChips('pf-rel', RELIGIOUS, 'rel');
+  renderChips('ob-cond', CONDITIONS, 'cond');
+  renderChips('ob-alg', ALLERGENS, 'alg');
+  renderChips('ob-rel', RELIGIOUS, 'rel');
+  renderNationChips(); renderNationHints();
+  renderProfileStrip(); renderExplore(); renderReco(); renderProfileCard();
+  if(document.getElementById('scr-card').classList.contains('active')) renderCard();
+}
+
+renderWelcome(); renderStatic(); refresh();
+</script>
+</body>
+</html>
