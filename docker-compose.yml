@@ -1,0 +1,17 @@
+services:
+  safeplate:
+    build: .
+    image: safeplate:local
+    ports:
+      - "3000:3000"
+    environment:
+      # 키가 비어 있으면 mock(데모) 데이터로 동작
+      TOUR_API_KEY: ${TOUR_API_KEY:-}
+      MFDS_API_KEY: ${MFDS_API_KEY:-}
+    volumes:
+      # 익명 통계(JSONL) 영속화
+      - safeplate-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  safeplate-data:

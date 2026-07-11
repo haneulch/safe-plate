@@ -162,3 +162,23 @@ src/
 - 안심카드 QR은 제약 텍스트 자체를 인코딩 (URL 아님).
 
 기존 단일 파일 데모는 `docs/demo/safeplate-korea.html`에 보존.
+
+## 배포 (Docker + GitHub Actions)
+
+```bash
+# 로컬 컨테이너 실행
+docker compose up -d --build     # http://localhost:3000, 키는 .env.local의 값이 compose로 주입
+
+# 헬스체크
+curl localhost:3000/api/health   # {"status":"ok","tourapi":"live|mock","mfds":"live|mock"}
+```
+
+`main` 푸시 시 [.github/workflows/deploy.yml](.github/workflows/deploy.yml)이 자동 실행:
+
+1. **test** — lint + vitest + next build
+2. **build-push** — Docker 이미지 빌드 후 `ghcr.io/<repo>`에 push (`latest` + 커밋 SHA 태그)
+3. **deploy** (선택) — 리포지토리 **Variables**에 `DEPLOY_ENABLED=true` 설정 시 SSH로 서버에 pull & 재기동
+   - 필요한 **Secrets**: `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, `TOUR_API_KEY`, `MFDS_API_KEY`
+
+이미지: multi-stage(standalone) ~194MB, non-root 실행, `/api/health` HEALTHCHECK 내장.
+익명 통계는 `safeplate-data` 볼륨(`/app/data`)에 영속화.

@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.claude
+.idea
+data
+docs
+coverage
+*.md
+.env*
+!.env.local.example
+Dockerfile
+docker-compose.yml
+.github
+scripts/stats-to-csv.mjs
+*.iml
+.DS_Store
