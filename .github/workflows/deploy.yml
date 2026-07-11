@@ -69,6 +69,8 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
+            # GITHUB_TOKEN은 이 잡이 실행되는 동안 유효 — private 패키지 pull 인증용
+            echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
             docker pull ghcr.io/${{ github.repository }}:latest
             docker stop safeplate 2>/dev/null || true
             docker rm safeplate 2>/dev/null || true
