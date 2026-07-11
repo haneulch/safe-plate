@@ -116,3 +116,49 @@ GET http://apis.data.go.kr/B551011/KorService1/areaBasedList1
 - 한국관광공사 TourAPI (visitkorea.or.kr)
 - 식품의약품안전처 식품영양성분 데이터베이스
 - 공공데이터포털 (data.go.kr)
+
+---
+
+## 개발 가이드 (Next.js 서비스)
+
+### 실행
+
+```bash
+npm install
+npm run dev        # http://localhost:3000
+npm test           # vitest — 판정 엔진·메뉴 추론 유닛테스트
+npm run build      # 프로덕션 빌드
+```
+
+`TOUR_API_KEY` 없이 실행하면 **mock(데모) 데이터**로 동작합니다 (응답 헤더 `x-safeplate-source: mock`).
+실제 TourAPI 연동은 [data.go.kr](https://www.data.go.kr)에서 한국관광공사 TourAPI 4.0 키 발급 후:
+
+```bash
+cp .env.local.example .env.local   # TOUR_API_KEY=발급키
+```
+
+### 구조
+
+```
+src/
+├── app/                # Next.js App Router
+│   ├── onboarding/     # 국가→언어→질환→알레르기→종교→기타 위저드
+│   ├── (main)/         # explore(위치 기반 목록) / restaurant/[id] / card(안심카드) / profile
+│   └── api/restaurants # TourAPI 프록시 (키는 서버 전용, mock fallback + LRU 캐시)
+├── components/         # CareCard, Chips, BottomNav, AppHeader, ClientGate …
+└── lib/
+    ├── verdict/        # 판정 엔진 (순수 함수, ReasonCode 반환)
+    ├── inference/      # 한국어 메뉴 텍스트 → 재료 태그 사전 추론 (AI 추론으로 교체 가능)
+    ├── tourapi/        # TourAPI 4.0 클라이언트·매퍼·mock
+    ├── i18n/           # ko/en/ja/zh/ar 문자열·라벨 (ar은 RTL)
+    └── store/          # zustand + localStorage (프로필은 기기 밖으로 나가지 않음)
+```
+
+### 개인정보 원칙
+
+- 건강 프로필(질환·알레르기·종교식)은 **localStorage에만** 저장 — 서버 전송·저장 없음.
+- 판정 엔진은 브라우저에서 실행. 서버로 가는 것은 좌표·언어 쿼리 파라미터뿐.
+- 위치정보는 조회에만 사용하고 저장하지 않으며, 거부 시 명동 기본 좌표로 동작.
+- 안심카드 QR은 제약 텍스트 자체를 인코딩 (URL 아님).
+
+기존 단일 파일 데모는 `docs/demo/safeplate-korea.html`에 보존.
