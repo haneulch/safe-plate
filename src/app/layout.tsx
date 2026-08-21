@@ -21,12 +21,15 @@ const fontDisplay = Gowun_Batang({
 export const metadata: Metadata = {
   title: 'SafePlate Korea',
   description: 'Eat safely in Korea — dietary screening & care card for travelers',
+  appleWebApp: { capable: true, title: 'SafePlate', statusBarStyle: 'default' },
+  icons: { apple: '/icons/icon-192.png' },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
+  themeColor: '#15803d',
 };
 
 export default async function RootLayout({
