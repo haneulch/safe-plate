@@ -27,7 +27,12 @@ deploy() {
   [ -z "$manifest" ] && { echo "[$name] manifest 조회 실패 — 스킵"; return 0; }
   remote=$(printf '%s' "$manifest" | sha256sum | cut -d' ' -f1)
   local_d=$(cat "/var/lib/pull-deploy/$name" 2>/dev/null || true)
-  [ "$remote" = "$local_d" ] && return 0
+
+  # 다이제스트가 같아도 컨테이너가 없으면 배포해야 한다. 마커만 보면
+  # (수동 삭제·prune·재부팅 실패 등으로) 컨테이너가 사라진 뒤 영구히 안 뜬다.
+  if [ "$remote" = "$local_d" ] && docker inspect -f '{{.State.Running}}' "$name" 2>/dev/null | grep -q true; then
+    return 0
+  fi
 
   echo "[$name] 새 이미지 감지 → 배포"
   docker pull "$image"
