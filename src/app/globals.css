@@ -222,3 +222,32 @@ body {
 /* skeleton */
 .skeleton { background: linear-gradient(90deg, var(--line) 25%, #eef2f0 50%, var(--line) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: var(--radius); }
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ── 프로필 동기화 바 (로그인 상태) ── */
+.syncbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line, #e5e5e5);
+  border-radius: 10px;
+  font-size: 13px;
+}
+.syncbar-label {
+  color: var(--sub, #777);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.syncbar-btn {
+  flex: none;
+  border: 1px solid var(--line, #ddd);
+  background: transparent;
+  color: inherit;
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.syncbar-btn:disabled { opacity: 0.5; }

@@ -15,6 +15,7 @@ import { useProfileStore } from '@/lib/store/profile';
 import CareCard from '@/components/CareCard';
 import Chips from '@/components/Chips';
 import ClientGate from '@/components/ClientGate';
+import ProfileSyncBar from '@/components/ProfileSyncBar';
 
 export default function ProfilePage() {
   const {
@@ -42,6 +43,7 @@ export default function ProfilePage() {
     <div className="prof-wrap">
       <div className="prof-title">{s.pfTitle}</div>
       <div className="prof-sub">{s.pfSub}</div>
+      <ProfileSyncBar />
 
       <ClientGate fallback={<div className="skeleton" style={{ height: 200, marginTop: 16 }} />}>
         {(hasRestrictions(profile) || profile.etc.trim()) && (

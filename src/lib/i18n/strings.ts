@@ -76,6 +76,10 @@ export interface Strings {
   cardQ: string;
   pfTitle: string;
   pfSub: string;
+  pfSignIn: string;
+  pfSignOut: string;
+  pfSignedAs: string;
+  pfSyncHint: string;
   nav: [string, string, string, string, string];
   scanTitle: string;
   scanSub: string;

@@ -58,6 +58,10 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # repo Variables. 비어 있으면 로그인 UI가 숨고 로컬 프로필로만 동작.
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
   # 서버(SSH) 배포 — 리포지토리 Variables에 DEPLOY_ENABLED=true 설정 시에만 실행.
   # 필요한 Secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, TOUR_API_KEY, MFDS_API_KEY
