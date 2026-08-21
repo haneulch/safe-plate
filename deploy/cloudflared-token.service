@@ -1,0 +1,23 @@
+# /etc/systemd/system/cloudflared.service
+# 대시보드 관리(remotely-managed) 터널용. ingress 규칙은 Cloudflare에 있고
+# 로컬 config.yml은 무시된다. 로컬 관리 터널이면 cloudflared.service를 쓸 것.
+#
+# 토큰은 /etc/cloudflared/token.env 에 두고 여기엔 박지 않는다 (커밋 사고 방지).
+#   TUNNEL_TOKEN=eyJ...
+[Unit]
+Description=Cloudflare Tunnel (dashboard-managed)
+After=network-online.target
+Wants=network-online.target
+
+# ExecStart의 __CLOUDFLARED__ 는 install.sh 가 실제 경로로 치환한다
+# (apt 설치는 /usr/bin, 바이너리 직접 내려받으면 /usr/local/bin).
+[Service]
+EnvironmentFile=/etc/cloudflared/token.env
+ExecStart=__CLOUDFLARED__ --no-autoupdate tunnel run
+Restart=always
+RestartSec=5
+MemoryMax=150M
+User=root
+
+[Install]
+WantedBy=multi-user.target

@@ -4,8 +4,10 @@ Description=Cloudflare Tunnel
 After=network-online.target
 Wants=network-online.target
 
+# ExecStart의 __CLOUDFLARED__ 는 install.sh 가 실제 경로로 치환한다
+# (apt 설치는 /usr/bin, 바이너리 직접 내려받으면 /usr/local/bin).
 [Service]
-ExecStart=/usr/local/bin/cloudflared --config /etc/cloudflared/config.yml --no-autoupdate tunnel run
+ExecStart=__CLOUDFLARED__ --config /etc/cloudflared/config.yml --no-autoupdate tunnel run
 Restart=always
 RestartSec=5
 MemoryMax=150M

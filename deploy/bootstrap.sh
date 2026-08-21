@@ -10,9 +10,15 @@ if ! swapon --show | grep -q /swapfile; then
   swapon /swapfile
   echo '/swapfile none swap sw 0 0' >> /etc/fstab
 fi
-# 1GB RAM에서는 swap을 적극적으로 쓰는 게 OOM kill보다 낫다
-sysctl -w vm.swappiness=60
-echo 'vm.swappiness=60' > /etc/sysctl.d/99-swap.conf
+# swappiness는 이미 설정돼 있으면 손대지 않는다 — 두 곳에 쓰면 어느 값이 이기는지
+# 헷갈리고 재부팅 후 동작이 바뀐다.
+if grep -rqs '^[[:space:]]*vm\.swappiness' /etc/sysctl.conf /etc/sysctl.d/ 2>/dev/null; then
+  echo "vm.swappiness 이미 설정됨 (현재 $(sysctl -n vm.swappiness)) — 유지"
+else
+  # 기본 60. 낮추면 OOM kill 위험이 커지고, 높이면 pd-standard에서 지연이 늘어난다.
+  echo 'vm.swappiness=60' > /etc/sysctl.d/99-swap.conf
+  sysctl -q -w vm.swappiness=60
+fi
 
 # ── 2. Docker ──
 if ! command -v docker >/dev/null; then
@@ -27,13 +33,20 @@ cat > /etc/docker/daemon.json <<'JSON'
 JSON
 systemctl restart docker
 
-# ── 3. cloudflared ──
+# ── 3. cloudflared (apt 저장소 — 서명 검증 + apt 로 버전 관리) ──
 if ! command -v cloudflared >/dev/null; then
-  curl -fsSLo /usr/local/bin/cloudflared \
-    https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
-  chmod +x /usr/local/bin/cloudflared
+  mkdir -p --mode=0755 /usr/share/keyrings
+  curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg \
+    > /usr/share/keyrings/cloudflare-main.gpg
+  echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' \
+    > /etc/apt/sources.list.d/cloudflared.list
+  apt-get update -qq
+  apt-get install -y cloudflared
 fi
 mkdir -p /etc/cloudflared
+# 대시보드 관리 터널을 쓸 경우에만 채운다 (TUNNEL_TOKEN=eyJ...).
+# 로컬 관리 터널이면 비워두고 config.yml 을 쓴다.
+[ -f /etc/cloudflared/token.env ] || { touch /etc/cloudflared/token.env; chmod 600 /etc/cloudflared/token.env; }
 
 # ── 4. 앱 시크릿 파일 (비어 있으면 앱이 mock 모드로 동작) ──
 for f in /etc/safeplate.env /etc/sanneomeo.env; do

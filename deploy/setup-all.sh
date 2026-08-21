@@ -23,9 +23,15 @@ if ! swapon --show | grep -q /swapfile; then
   swapon /swapfile
   echo '/swapfile none swap sw 0 0' >> /etc/fstab
 fi
-# 1GB RAM에서는 swap을 적극적으로 쓰는 게 OOM kill보다 낫다
-sysctl -w vm.swappiness=60
-echo 'vm.swappiness=60' > /etc/sysctl.d/99-swap.conf
+# swappiness는 이미 설정돼 있으면 손대지 않는다 — 두 곳에 쓰면 어느 값이 이기는지
+# 헷갈리고 재부팅 후 동작이 바뀐다.
+if grep -rqs '^[[:space:]]*vm\.swappiness' /etc/sysctl.conf /etc/sysctl.d/ 2>/dev/null; then
+  echo "vm.swappiness 이미 설정됨 (현재 $(sysctl -n vm.swappiness)) — 유지"
+else
+  # 기본 60. 낮추면 OOM kill 위험이 커지고, 높이면 pd-standard에서 지연이 늘어난다.
+  echo 'vm.swappiness=60' > /etc/sysctl.d/99-swap.conf
+  sysctl -q -w vm.swappiness=60
+fi
 
 # ── 2. Docker ──
 if ! command -v docker >/dev/null; then
@@ -40,13 +46,20 @@ cat > /etc/docker/daemon.json <<'JSON'
 JSON
 systemctl restart docker
 
-# ── 3. cloudflared ──
+# ── 3. cloudflared (apt 저장소 — 서명 검증 + apt 로 버전 관리) ──
 if ! command -v cloudflared >/dev/null; then
-  curl -fsSLo /usr/local/bin/cloudflared \
-    https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
-  chmod +x /usr/local/bin/cloudflared
+  mkdir -p --mode=0755 /usr/share/keyrings
+  curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg \
+    > /usr/share/keyrings/cloudflare-main.gpg
+  echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' \
+    > /etc/apt/sources.list.d/cloudflared.list
+  apt-get update -qq
+  apt-get install -y cloudflared
 fi
 mkdir -p /etc/cloudflared
+# 대시보드 관리 터널을 쓸 경우에만 채운다 (TUNNEL_TOKEN=eyJ...).
+# 로컬 관리 터널이면 비워두고 config.yml 을 쓴다.
+[ -f /etc/cloudflared/token.env ] || { touch /etc/cloudflared/token.env; chmod 600 /etc/cloudflared/token.env; }
 
 # ── 4. 앱 시크릿 파일 (비어 있으면 앱이 mock 모드로 동작) ──
 for f in /etc/safeplate.env /etc/sanneomeo.env; do
@@ -104,8 +117,10 @@ Description=Cloudflare Tunnel
 After=network-online.target
 Wants=network-online.target
 
+# ExecStart의 __CLOUDFLARED__ 는 install.sh 가 실제 경로로 치환한다
+# (apt 설치는 /usr/bin, 바이너리 직접 내려받으면 /usr/local/bin).
 [Service]
-ExecStart=/usr/local/bin/cloudflared --config /etc/cloudflared/config.yml --no-autoupdate tunnel run
+ExecStart=__CLOUDFLARED__ --config /etc/cloudflared/config.yml --no-autoupdate tunnel run
 Restart=always
 RestartSec=5
 MemoryMax=150M
@@ -202,21 +217,48 @@ cat > "$DEST/install.sh" <<'SETUP_EOF'
 set -euo pipefail
 cd "$(dirname "$0")"
 
-if [ ! -f /etc/cloudflared/config.yml ]; then
-  echo "!! /etc/cloudflared/config.yml 없음."
-  echo "   cloudflared-config.yml의 example.com을 실제 도메인으로 바꾼 뒤"
-  echo "   /etc/cloudflared/config.yml 로 복사하고, tunnel create가 만든"
-  echo "   자격증명 json도 /etc/cloudflared/ 에 두고 다시 실행."
+# ── 터널 유닛 판별 ──
+# `cloudflared service install <TOKEN>` 은 이미 /etc/systemd/system/cloudflared.service
+# 를 만들고 실행한다. 그 경우 우리 유닛으로 덮으면 동작 중인 터널이 끊긴다 → 손대지 않는다.
+CF_UNIT=/etc/systemd/system/cloudflared.service
+TUNNEL_UNIT=""
+
+if systemctl is-active --quiet cloudflared.service; then
+  echo "터널: cloudflared.service 이미 실행 중 — 유닛 건드리지 않음"
+elif [ -f "$CF_UNIT" ] && grep -q -- '--token' "$CF_UNIT"; then
+  echo "터널: cloudflared service install 로 구성됨(중단 상태) — 유닛 건드리지 않음"
+  systemctl start cloudflared.service || true
+elif [ -s /etc/cloudflared/token.env ]; then
+  TUNNEL_UNIT=cloudflared-token.service
+  echo "터널: 대시보드 관리 (token.env 사용)"
+elif [ -f /etc/cloudflared/config.yml ]; then
+  TUNNEL_UNIT=cloudflared.service
+  echo "터널: 로컬 관리 (config.yml 사용)"
+else
+  echo "!! 터널 설정이 없다. 셋 중 하나:"
+  echo "   [이미 구성됨]   sudo cloudflared service install <TOKEN>"
+  echo "   [대시보드 관리] /etc/cloudflared/token.env 에  TUNNEL_TOKEN=eyJ..."
+  echo "   [로컬 관리]     cloudflared-config.yml 의 example.com 을 실제 도메인으로"
+  echo "                   바꿔 /etc/cloudflared/config.yml 로 복사 +"
+  echo "                   tunnel create 가 만든 자격증명 json 도 같은 디렉터리에"
   exit 1
 fi
 
 install -m 755 pull-deploy.sh /usr/local/bin/pull-deploy.sh
 install -m 644 pull-deploy.service /etc/systemd/system/pull-deploy.service
 install -m 644 pull-deploy.timer   /etc/systemd/system/pull-deploy.timer
-install -m 644 cloudflared.service /etc/systemd/system/cloudflared.service
+if [ -n "$TUNNEL_UNIT" ]; then
+  # systemd 는 ExecStart 에 절대경로를 요구한다 — 설치 위치가 apt(/usr/bin)냐
+  # 직접 내려받기(/usr/local/bin)냐에 따라 달라지므로 여기서 확정한다.
+  CF_BIN=$(command -v cloudflared || true)
+  [ -n "$CF_BIN" ] || { echo "!! cloudflared 바이너리를 찾을 수 없다. bootstrap.sh 먼저 실행."; exit 1; }
+  sed "s#__CLOUDFLARED__#${CF_BIN}#" "$TUNNEL_UNIT" > /etc/systemd/system/cloudflared.service
+  chmod 644 /etc/systemd/system/cloudflared.service
+  echo "cloudflared 바이너리: $CF_BIN"
+fi
 
 systemctl daemon-reload
-systemctl enable --now cloudflared.service
+[ -n "$TUNNEL_UNIT" ] && systemctl enable --now cloudflared.service
 systemctl enable --now pull-deploy.timer
 
 # 첫 배포는 타이머를 기다리지 않고 즉시
@@ -227,6 +269,32 @@ echo "── 상태 ──"
 systemctl is-active cloudflared.service && echo "cloudflared: up"
 systemctl list-timers pull-deploy.timer --no-pager || true
 docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+SETUP_EOF
+
+cat > "$DEST/cloudflared-token.service" <<'SETUP_EOF'
+# /etc/systemd/system/cloudflared.service
+# 대시보드 관리(remotely-managed) 터널용. ingress 규칙은 Cloudflare에 있고
+# 로컬 config.yml은 무시된다. 로컬 관리 터널이면 cloudflared.service를 쓸 것.
+#
+# 토큰은 /etc/cloudflared/token.env 에 두고 여기엔 박지 않는다 (커밋 사고 방지).
+#   TUNNEL_TOKEN=eyJ...
+[Unit]
+Description=Cloudflare Tunnel (dashboard-managed)
+After=network-online.target
+Wants=network-online.target
+
+# ExecStart의 __CLOUDFLARED__ 는 install.sh 가 실제 경로로 치환한다
+# (apt 설치는 /usr/bin, 바이너리 직접 내려받으면 /usr/local/bin).
+[Service]
+EnvironmentFile=/etc/cloudflared/token.env
+ExecStart=__CLOUDFLARED__ --no-autoupdate tunnel run
+Restart=always
+RestartSec=5
+MemoryMax=150M
+User=root
+
+[Install]
+WantedBy=multi-user.target
 SETUP_EOF
 
 chmod +x "$DEST"/*.sh

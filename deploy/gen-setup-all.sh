@@ -5,7 +5,8 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 FILES=(bootstrap.sh cloudflared-config.yml cloudflared.service
-       pull-deploy.sh pull-deploy.service pull-deploy.timer install.sh)
+       pull-deploy.sh pull-deploy.service pull-deploy.timer install.sh
+       cloudflared-token.service)
 
 {
   cat <<'HEAD'
