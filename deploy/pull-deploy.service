@@ -1,0 +1,9 @@
+# /etc/systemd/system/pull-deploy.service
+[Unit]
+Description=GHCR 신규 이미지 확인 후 배포
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/pull-deploy.sh

@@ -1,0 +1,18 @@
+# /etc/cloudflared/config.yml
+# 터널 자격증명은 `cloudflared tunnel login` + `tunnel create` 로 생성됨.
+tunnel: dsp-demo
+credentials-file: /etc/cloudflared/dsp-demo.json
+
+# 원본은 loopback이므로 TLS 불필요 (CF edge ↔ cloudflared 구간은 이미 암호화)
+originRequest:
+  connectTimeout: 30s
+  # 미국 리전 → data.go.kr 왕복이 느려 API 라우트가 30s 넘길 수 있음
+  noTLSVerify: false
+
+ingress:
+  - hostname: plate.example.com
+    service: http://127.0.0.1:3000
+  - hostname: mtn.example.com
+    service: http://127.0.0.1:3001
+  # 매칭 안 되는 요청은 404 (필수 — 마지막 규칙은 catch-all이어야 함)
+  - service: http_status:404

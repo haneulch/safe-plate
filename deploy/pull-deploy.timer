@@ -1,0 +1,11 @@
+# /etc/systemd/system/pull-deploy.timer
+[Unit]
+Description=GHCR 신규 이미지 폴링 배포
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=3min
+Unit=pull-deploy.service
+
+[Install]
+WantedBy=timers.target

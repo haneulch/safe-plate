@@ -5,6 +5,7 @@ node_modules
 .idea
 data
 docs
+deploy
 coverage
 *.md
 .env*

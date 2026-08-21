@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -69,15 +73,16 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            # GITHUB_TOKEN은 이 잡이 실행되는 동안 유효 — private 패키지 pull 인증용
-            echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
+            set -e
+            # public package라 docker login 불필요
             docker pull ghcr.io/${{ github.repository }}:latest
-            docker stop safeplate 2>/dev/null || true
-            docker rm safeplate 2>/dev/null || true
+            docker rm -f safeplate 2>/dev/null || true
             docker run -d --name safeplate --restart unless-stopped \
-              -p 3000:3000 \
+              -p 127.0.0.1:3000:3000 \
+              --memory=400m --memory-swap=700m \
               -e TOUR_API_KEY='${{ secrets.TOUR_API_KEY }}' \
               -e MFDS_API_KEY='${{ secrets.MFDS_API_KEY }}' \
+              -e STATS_DIR=/app/data \
               -v safeplate-data:/app/data \
               ghcr.io/${{ github.repository }}:latest
             docker image prune -f

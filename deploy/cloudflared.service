@@ -1,0 +1,15 @@
+# /etc/systemd/system/cloudflared.service
+[Unit]
+Description=Cloudflare Tunnel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/cloudflared --config /etc/cloudflared/config.yml --no-autoupdate tunnel run
+Restart=always
+RestartSec=5
+MemoryMax=150M
+User=root
+
+[Install]
+WantedBy=multi-user.target
