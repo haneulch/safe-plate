@@ -34,18 +34,57 @@ Cloudflare edge (TLS·캐싱·DDoS)
 로컬에 gcloud/cloudflared가 없어도 된다 — 전부 VM 안에서 한다.
 VM 접속은 GCP 콘솔의 브라우저 SSH 또는 `gcloud compute ssh --tunnel-through-iap`.
 
-### 1) 파일 받기 (VM에서)
+### 0) GHCR 패키지 visibility 확인 (필수)
 
-이 디렉터리는 safe-plate repo에 들어 있고 repo가 public이라 인증이 필요 없다.
+**repo를 public으로 바꿔도 컨테이너 패키지는 private로 남는다.** Actions가 만든
+패키지는 repo visibility를 상속하지 않기 때문에, 따로 바꾸지 않으면 VM의
+`docker pull`이 계속 403으로 실패한다.
+
+- `github.com/users/<계정>/packages/container/safe-plate/settings`
+  → Danger Zone → Change visibility → **Public**
+- sanneomeo도 동일
+
+익명 pull이 되는지 로컬에서 확인:
+
+```bash
+for p in safe-plate sanneomeo; do
+  tok=$(curl -s "https://ghcr.io/token?scope=repository:<계정>/$p:pull&service=ghcr.io" \
+        | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+  curl -s -o /dev/null -w "$p -> %{http_code}\n" -H "Authorization: Bearer $tok" \
+    -H "Accept: application/vnd.oci.image.index.v1+json" \
+    "https://ghcr.io/v2/<계정>/$p/manifests/latest"
+done
+# 200 = public OK / 403 = 아직 private
+```
+
+패키지를 private로 유지할 경우: 전송량 **1GB/월** 제한이 걸린다. 이미지가 ~100MB라
+실배포 **월 10회** 수준에서 고갈되고, 초과하면 다음 달까지 pull이 막힌다
+(3분 폴링 자체는 manifest만 읽어 수 KB라 무해). 그 경우 `/etc/ghcr.env`에
+`read:packages` PAT를 채우면 `pull-deploy.sh`가 로그인한다.
+
+### 1) 배포 파일 받기 (VM에서)
+
+repo가 public이면 그냥 clone한다:
 
 ```bash
 sudo apt-get update && sudo apt-get install -y git
-git clone --depth 1 https://github.com/haneulch/safe-plate.git ~/safe-plate
+git clone --depth 1 https://github.com/<계정>/safe-plate.git ~/safe-plate
 ln -sfn ~/safe-plate/deploy ~/deploy
 ```
 
-이후 배포 파일을 고치면 VM에서 `git -C ~/safe-plate pull` 로 갱신한다.
+이후 배포 파일을 고치면 `git -C ~/safe-plate pull` 로 갱신한다.
 (앱 배포는 이와 무관하게 pull-deploy 타이머가 GHCR에서 처리한다.)
+
+**clone이 안 되는 환경**(repo가 private거나 VM에 git이 없을 때)에는 `setup-all.sh`를
+쓴다 — 7개 배포 파일을 heredoc으로 품고 있어 git·토큰·업로드 도구 없이 콘솔 SSH에
+내용을 붙여넣고 실행만 하면 된다:
+
+```bash
+sudo bash setup-all.sh          # → ~/deploy/ 에 파일 생성
+```
+
+`setup-all.sh`는 `gen-setup-all.sh`가 원본 7개 파일에서 생성한다.
+배포 파일을 고치면 생성기를 다시 돌려야 드리프트가 안 생긴다.
 
 ### 2) 부트스트랩 (VM에서)
 ```bash

@@ -1,7 +1,22 @@
 #!/usr/bin/env bash
 # /usr/local/bin/pull-deploy.sh
-# GHCR의 :latest 다이제스트가 바뀌었을 때만 재기동. public package라 인증 불필요.
+# GHCR의 :latest 다이제스트가 바뀌었을 때만 재기동.
+#
+# 패키지가 public이면 인증이 필요 없다. private면 /etc/ghcr.env 에
+#   GHCR_USER=<github-계정>
+#   GHCR_TOKEN=<read:packages 권한 PAT>
+# 를 두면 로그인한다. 단 private 패키지는 전송량 1GB/월 제한이 걸리므로
+# (이미지 ~100MB → 월 10회 배포) 패키지만 public으로 바꾸는 쪽을 권한다.
 set -euo pipefail
+
+if [ -f /etc/ghcr.env ]; then
+  # shellcheck disable=SC1091
+  . /etc/ghcr.env
+  if [ -n "${GHCR_TOKEN:-}" ]; then
+    printf '%s' "$GHCR_TOKEN" \
+      | docker login ghcr.io -u "${GHCR_USER:?GHCR_USER 필요}" --password-stdin >/dev/null
+  fi
+fi
 
 deploy() {
   local name=$1 image=$2 port=$3; shift 3

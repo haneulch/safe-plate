@@ -49,4 +49,15 @@ DATA_STORE_DIR=/app/data/store
 DATA_GO_KR_KEY=
 ENV
 
-echo "완료. 다음: cloudflared tunnel login && tunnel create dsp-demo"
+# ── 5. GHCR 인증 (패키지가 private일 때만 채운다) ──
+if [ ! -f /etc/ghcr.env ]; then
+  cat > /etc/ghcr.env <<'ENV'
+# 패키지를 public으로 바꿨으면 이 파일은 비워둬도 된다.
+# private로 쓸 경우: read:packages 권한 PAT 발급 후 채울 것.
+GHCR_USER=
+GHCR_TOKEN=
+ENV
+  chmod 600 /etc/ghcr.env
+fi
+
+echo "완료. 다음: sudo cloudflared tunnel login && sudo cloudflared tunnel create dsp-demo"

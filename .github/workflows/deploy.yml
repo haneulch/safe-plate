@@ -74,7 +74,8 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             set -e
-            # public package라 docker login 불필요
+            # 패키지가 private면 필요, public이면 무해하게 통과. repo visibility와 무관하다.
+            echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
             docker pull ghcr.io/${{ github.repository }}:latest
             docker rm -f safeplate 2>/dev/null || true
             docker run -d --name safeplate --restart unless-stopped \
