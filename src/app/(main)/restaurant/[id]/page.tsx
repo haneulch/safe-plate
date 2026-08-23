@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import type { RestaurantDetailResponse } from '@/lib/types';
 import { getStrings, loc } from '@/lib/i18n';
 import { useProfileStore } from '@/lib/store/profile';
@@ -14,6 +14,7 @@ const PLATE_ICON = { g: '✓', y: '!', r: '✕' } as const;
 export default function RestaurantDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const svc = useSearchParams().get('svc');
   const lang = useProfileStore((s) => s.uiLang);
   const profile = useProfileStore((s) => s.profile);
   const s = getStrings(lang);
@@ -25,7 +26,7 @@ export default function RestaurantDetailPage({ params }: { params: Promise<{ id:
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/restaurants/${id}?lang=${lang}`);
+        const res = await fetch(`/api/restaurants/${id}?lang=${lang}${svc ? `&svc=${svc}` : ''}`);
         if (!res.ok) throw new Error(String(res.status));
         const body: RestaurantDetailResponse = await res.json();
         if (!cancelled) setData(body);
@@ -36,7 +37,7 @@ export default function RestaurantDetailPage({ params }: { params: Promise<{ id:
     return () => {
       cancelled = true;
     };
-  }, [id, lang]);
+  }, [id, lang, svc]);
 
   if (error) {
     return (

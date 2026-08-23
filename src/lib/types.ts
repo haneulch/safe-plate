@@ -91,6 +91,10 @@ export interface RestaurantSummary {
   imageUrl?: string;
   source: 'tourapi' | 'mock';
   halalCert?: boolean;
+  /** TourAPI service the record came from. Multilingual services are sparse
+   *  outside tourist zones, so lists may fall back to the ko service —
+   *  detail fetches must then use the same service (contentIds differ). */
+  svcLang?: UiLang;
 }
 
 export interface RestaurantDetail extends RestaurantSummary {

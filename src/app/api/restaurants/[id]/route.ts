@@ -14,6 +14,9 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
   const { id } = await ctx.params;
   const langParam = req.nextUrl.searchParams.get('lang');
   const lang: UiLang = isUiLang(langParam) ? langParam : 'en';
+  // 목록이 ko 서비스로 폴백된 항목은 contentId가 ko 서비스 소속 — svc로 그 서비스를 지정한다.
+  const svcParam = req.nextUrl.searchParams.get('svc');
+  const svc: UiLang = isUiLang(svcParam) ? svcParam : lang;
 
   // Mock ids resolve directly even in live mode — keeps mixed mode and e2e stable.
   const mock = mockById(id);
@@ -26,7 +29,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     return NextResponse.json({ error: 'not found' }, { status: 404 });
   }
 
-  const key = `detail:${lang}:${id}`;
+  const key = `detail:${svc}:${id}`;
   const cached = detailCache.get(key);
   if (cached) {
     const body: RestaurantDetailResponse = { restaurant: cached, source: 'tourapi' };
@@ -36,9 +39,9 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
   }
 
   try {
-    const [common, intro] = await Promise.all([detailCommon(lang, id), detailFoodIntro(lang, id)]);
+    const [common, intro] = await Promise.all([detailCommon(svc, id), detailFoodIntro(svc, id)]);
     if (!common) return NextResponse.json({ error: 'not found' }, { status: 404 });
-    const restaurant = await mapDetail(lang, id, common, intro);
+    const restaurant = await mapDetail(svc, id, common, intro);
     detailCache.set(key, restaurant);
     const body: RestaurantDetailResponse = { restaurant, source: 'tourapi' };
     return NextResponse.json(body, {

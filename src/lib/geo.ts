@@ -26,24 +26,29 @@ export function useGeolocation(): GeoState {
   });
 
   useEffect(() => {
-    let done = false;
+    let active = true;
+    let fellBack = false;
     const fallback = () => {
-      if (!done) {
-        done = true;
+      if (active && !fellBack) {
+        fellBack = true;
         setState({ status: 'fallback', lat: DEFAULT_LOCATION.lat, lng: DEFAULT_LOCATION.lng });
       }
     };
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       // async so the state update is not synchronous within the effect
       const t = setTimeout(fallback, 0);
-      return () => clearTimeout(t);
+      return () => {
+        active = false;
+        clearTimeout(t);
+      };
     }
     const timer = setTimeout(fallback, TIMEOUT_MS);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        if (!done) {
-          done = true;
-          clearTimeout(timer);
+        // 권한 팝업을 읽는 동안 타임아웃 폴백이 먼저 확정될 수 있다.
+        // 실제 위치가 늦게라도 오면 폴백을 덮어쓴다 — 버리면 명동 고정.
+        clearTimeout(timer);
+        if (active) {
           setState({ status: 'granted', lat: pos.coords.latitude, lng: pos.coords.longitude });
         }
       },
@@ -53,7 +58,10 @@ export function useGeolocation(): GeoState {
       },
       { enableHighAccuracy: false, timeout: TIMEOUT_MS, maximumAge: 5 * 60 * 1000 },
     );
-    return () => clearTimeout(timer);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, []);
 
   return state;

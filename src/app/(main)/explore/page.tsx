@@ -70,7 +70,7 @@ export default function ExplorePage() {
       await Promise.all(
         targets.map(async (r) => {
           try {
-            const res = await fetch(`/api/restaurants/${r.id}?lang=${lang}`);
+            const res = await fetch(`/api/restaurants/${r.id}?lang=${lang}&svc=${r.svcLang ?? lang}`);
             if (!res.ok) return;
             const body: RestaurantDetailResponse = await res.json();
             if (cancelled || !body.restaurant.menus.length) return;
@@ -168,7 +168,7 @@ export default function ExplorePage() {
                   key={r.id}
                   type="button"
                   className="rest-card"
-                  onClick={() => router.push(`/restaurant/${r.id}`)}
+                  onClick={() => router.push(`/restaurant/${r.id}?svc=${r.svcLang ?? lang}`)}
                 >
                   <div className={`plate ${v ? v.level : 'n'}`}>{v ? PLATE_ICON[v.level] : '···'}</div>
                   <div className="rest-info">

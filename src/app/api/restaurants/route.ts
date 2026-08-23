@@ -47,8 +47,16 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const items = await locationBasedFood(lang, lat, lng, radius);
-    const restaurants = items.map((i) => mapListItem(i, lang));
+    // 다국어 서비스는 관광지 밖에서 데이터가 희소하다 (예: 판교 en=0 vs ko=21).
+    // 비어 있으면 한국어 서비스로 재조회 — 식당명은 한국어로 표시되지만
+    // 실제 간판도 한국어라 여행자 UX로 성립한다. 상세 조회를 위해 svcLang 전파.
+    let svcLang = lang;
+    let items = await locationBasedFood(lang, lat, lng, radius);
+    if (!items.length && lang !== 'ko') {
+      svcLang = 'ko';
+      items = await locationBasedFood('ko', lat, lng, radius);
+    }
+    const restaurants = items.map((i) => ({ ...mapListItem(i, svcLang), svcLang }));
     listCache.set(key, restaurants);
     const body: RestaurantsResponse = { restaurants, source: 'tourapi' };
     return NextResponse.json(body, {
