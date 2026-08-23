@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "today.devlab.safeplate",
+      "sha256_cert_fingerprints": ["DA:0E:04:90:A1:6A:71:0C:09:7D:92:D9:1E:B1:EC:D2:66:01:1D:4D:4E:2B:6C:48:FD:6E:07:B9:94:27:ED:D6"]
+    }
+  }
+]
