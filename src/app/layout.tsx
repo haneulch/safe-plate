@@ -3,6 +3,7 @@ import { Gowun_Batang, IBM_Plex_Sans_KR } from 'next/font/google';
 import { cookies } from 'next/headers';
 import './globals.css';
 import { LANG_COOKIE, dirFor, isUiLang } from '@/lib/i18n';
+import ProfileSync from '@/components/ProfileSync';
 
 const fontUi = IBM_Plex_Sans_KR({
   weight: ['400', '500', '700'],
@@ -40,6 +41,7 @@ export default async function RootLayout({
   return (
     <html lang={lang} dir={dirFor(lang)} className={`${fontUi.variable} ${fontDisplay.variable}`}>
       <body>
+        <ProfileSync />
         <div className="phone">{children}</div>
       </body>
     </html>
