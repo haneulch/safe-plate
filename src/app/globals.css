@@ -251,3 +251,56 @@ body {
   cursor: pointer;
 }
 .syncbar-btn:disabled { opacity: 0.5; }
+
+/* splash (app entry) */
+.splash {
+  flex: 1;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--bg);
+  animation: splash-in 0.45s ease both;
+}
+.splash-icon {
+  width: 88px;
+  height: 88px;
+  border-radius: 24px;
+  box-shadow: 0 10px 26px rgba(30, 83, 71, 0.22);
+  margin-bottom: 12px;
+}
+.splash-brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 27px;
+  color: var(--brand-dark);
+}
+.splash-brand small {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-inline-start: 6px;
+}
+.splash-tag {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.splash-spinner {
+  margin-top: 26px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2.5px solid var(--brand-tint);
+  border-top-color: var(--brand);
+  animation: splash-spin 0.8s linear infinite;
+}
+@keyframes splash-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes splash-spin {
+  to { transform: rotate(360deg); }
+}
